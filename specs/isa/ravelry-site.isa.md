@@ -6,7 +6,7 @@ status: aligned
 principal: "The requester (project owner at /home/jhollenbeck/ravelry), who also leads the small invited private-beta group"
 created: 2026-11-01
 updated: 2026-11-04
-progress: 4/75
+progress: 9/75
 ---
 
 ## Ideal State
@@ -107,7 +107,7 @@ Ravelry.com is the main home for knitters' and crocheters' patterns, yarn data, 
 Why: The work ships correct, safe and inside its boundaries.
 
 - [x] ISC-1: From a clean install (pnpm install --frozen-lockfile), the package scripts build, typecheck (tsc --noEmit) and lint (eslint .) each exit 0, with test (vitest run) and test:e2e (playwright test) scripts defined in package.json
-- [ ] ISC-2: No secret file is tracked by git: .env* files (except .env.example) are gitignored and git ls-files lists 0 of them (after: ISC-1)
+- [x] ISC-2: No secret file is tracked by git: .env* files (except .env.example) are gitignored and git ls-files lists 0 of them (after: ISC-1)
 - [ ] ISC-3: Anti: a Ravelry client secret, read-only credential or OAuth token reaches the browser (probe: sentinel values for RAVELRY_CLIENT_SECRET and RAVELRY_READONLY_PASSWORD set at build time appear in 0 files under .next/static; after mocked sign-in 0 token strings appear in localStorage, sessionStorage, document.cookie or browser-bound response bodies; the session cookie is HttpOnly, Secure and SameSite=Lax) (after: ISC-1)
 - [ ] ISC-4: Anti: scraping ravelry.com or calling undocumented endpoints (probe: during the smoke run of every route, each server-side outbound request goes to api.ravelry.com on a path whose capability is confirmed in specs/ravelry-api-verification.md, to auth.ravelry.com/oauth2/*, or to an image or delivery host listed in that note; 0 other requests) (after: ISC-1, ISC-16)
 - [ ] ISC-5: Anti: branding implies Ravelry endorsement: every page renders a footer notice containing 'not affiliated with Ravelry', and the repo ships 0 Ravelry logo assets (after: ISC-1, ISC-9)
@@ -129,11 +129,11 @@ Why: A documented design system generated with ui-ux-pro-max (tokens, type, colo
 
 - [x] ISC-9: design-system/ravelry-companion-site/MASTER.md contains the 5 ui-ux-pro-max generator headings Color Palette, Typography, Spacing Variables, Component Specs and Pre-Delivery Checklist
 - [x] ISC-63: The Decisions section records the exact ui-ux-pro-max command (search.py with --design-system --persist -p ravelry-companion-site) that generated MASTER.md, whose first line is the generator header '# Design System Master File' (after: ISC-9)
-- [ ] ISC-10: Every color token defined for the light theme in src/app/globals.css also has a dark-theme value there (0 tokens missing a dark value) (after: ISC-9, ISC-1)
-- [ ] ISC-11: design-system/ravelry-companion-site/contrast-pairs.json lists at least 8 foreground/background token pairs, each tagged text or ui, with every text pair at least 4.5:1 and every ui pair at least 3:1 in both light and dark themes (after: ISC-10)
-- [ ] ISC-12: Anti: regression — a file under src other than src/app/globals.css contains a color literal (hex in a color, fill, stroke or background value, rgb(), hsl(), oklch(), oklab(), arbitrary Tailwind color [#...]) or a default Tailwind palette class such as bg-red-500 (after: ISC-10)
+- [x] ISC-10: Every color token defined for the light theme in src/app/globals.css also has a dark-theme value there (0 tokens missing a dark value) (after: ISC-9, ISC-1)
+- [x] ISC-11: design-system/ravelry-companion-site/contrast-pairs.json lists at least 8 foreground/background token pairs, each tagged text or ui, with every text pair at least 4.5:1 and every ui pair at least 3:1 in both light and dark themes (after: ISC-10)
+- [x] ISC-12: Anti: regression — a file under src other than src/app/globals.css contains a color literal (hex in a color, fill, stroke or background value, rgb(), hsl(), oklch(), oklab(), arbitrary Tailwind color [#...]) or a default Tailwind palette class such as bg-red-500 (after: ISC-10)
 - [ ] ISC-13: At 375x812, every button, input, chip, tab and standalone link (links inline in a sentence of text excluded, per WCAG 2.5.8) on /, /patterns with the filter sheet open, /patterns/<id>, /yarns, /yarns/<id>, /me, /community, /me/library and /design-system has a bounding box of at least 44x44 CSS px (after: ISC-14, ISC-23, ISC-32, ISC-39, ISC-79)
-- [ ] ISC-14: A /design-system catalog route renders every component listed under Component Specs in MASTER.md, in light and dark themes, with 0 axe-core violations of any impact for tags wcag2a, wcag2aa, wcag21a, wcag21aa, wcag22aa (after: ISC-9, ISC-10)
+- [x] ISC-14: A /design-system catalog route renders every component listed under Component Specs in MASTER.md, in light and dark themes, with 0 axe-core violations of any impact for tags wcag2a, wcag2aa, wcag21a, wcag21aa, wcag22aa (after: ISC-9, ISC-10)
 - [ ] ISC-15: The ISA Decisions section holds a dated entry 'Design system approved' written by the principal after review of MASTER.md and /design-system on a phone (after: ISC-14)
 - [x] ISC-76: design-system/ravelry-companion-site/pages/workspace.md exists as the ui-ux-pro-max page override for the /me workspace, generated with --page workspace --density 7 --motion 3 (after: ISC-9)
 
@@ -361,6 +361,11 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 - 2026-11-04 · ISC-63 · pass · Decisions grep for search.py --design-system --persist → match; MASTER.md line 1 = '# Design System Master File'
 - 2026-11-04 · ISC-76 · pass · test -s design-system/ravelry-companion-site/pages/workspace.md → exit 0
 - 2026-11-04 · ISC-1 · pass · pnpm install --frozen-lockfile && pnpm build → exit 0 (Next.js 16.4.5); pnpm typecheck && pnpm lint → exit 0, 0 errors, 0 warnings; jq scripts check → true
+- 2026-11-04 · ISC-2 · pass · after commit 5af059b: git check-ignore -q .env.local → exit 0; tracked .env* other than .env.example → 0
+- 2026-11-04 · ISC-10 · pass · pnpm test tests/unit/design-tokens.themes.test.ts → 3/3 pass (22 light color tokens, 0 missing dark; mutation removing dark --scrim fails it)
+- 2026-11-04 · ISC-11 · pass · pnpm test tests/unit/design-tokens.contrast.test.ts → 3/3 pass, 15 pairs recomputed from globals.css (mutation to #e2e8f0 input fails at 1.19:1)
+- 2026-11-04 · ISC-12 · pass · color-literal grep over src excluding globals.css → 0 matches
+- 2026-11-04 · ISC-14 · pass · pnpm test:e2e design-system-catalog + a11y/design-system --project=mobile-375 → 5/5 pass: 4/4 MASTER components in both panels; 0 axe violations light, dark, open modal (mutation to low-contrast muted text fails with color-contrast)
 
 
 ## Articulation Log
@@ -419,3 +424,7 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 ### 2026-11-04 20:15 · verify — design system generated
 > "contineu" (continue with the plan: ISC-9 design system, then ISC-1 skeleton)
 **Settled:** MASTER.md and pages/workspace.md generated by ui-ux-pro-max (commands in Decisions). Variance 3 replaces the default to avoid Claymorphism. Dark palette and input token hand-derived and contrast-checked. Workspace spacing set to the Dense tier. Awaiting principal approval of the design system (ISC-15). Ladder unchanged.
+
+### 2026-11-04 22:45 · verify — /design-system built
+> "yes, commit and build /design-system"
+**Settled:** first commit 5af059b (ISC-2 pass). shadcn/ui (base-nova, Base UI) added and themed from MASTER.md: tokens in src/app/globals.css (light, dark class, OS dark preference, workspace density), button and input at 44px with a solid 2px focus ring, dialog scrim token. /design-system catalog renders Buttons, Cards, Inputs and Modals in light and dark panels. ISC-10, ISC-11, ISC-12 and ISC-14 pass, each with a mutation check proving the test can fail. Component-spec overrides recorded in MASTER.md. Next: principal reviews /design-system on a phone for ISC-15.

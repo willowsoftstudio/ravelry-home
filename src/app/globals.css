@@ -1,26 +1,197 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+ * Site theme tokens. This is the only file under src/ allowed to hold color
+ * literals (ISA ISC-12). Values come from
+ * design-system/ravelry-companion-site/MASTER.md: the generated Color Palette
+ * and the "Project Additions" dark theme. Contrast pairs are verified in
+ * design-system/ravelry-companion-site/contrast-pairs.json (ISC-11).
+ *
+ * Theme selection: light by default, dark when the OS prefers it, and the
+ * .light / .dark classes force a theme for a subtree (used by /design-system).
+ */
+
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-cta: var(--cta);
+  --color-cta-foreground: var(--cta-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-scrim: var(--scrim);
+
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-display);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+
+  --shadow-sm: 0 1px 2px var(--shadow-color);
+  --shadow-md: 0 4px 6px var(--shadow-color);
+  --shadow-lg: 0 10px 15px var(--shadow-color);
 }
 
+/* Light theme (MASTER.md Color Palette) */
+:root,
+.light {
+  --background: #fffbeb;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #9a3412;
+  --primary-foreground: #ffffff;
+  --secondary: #c2410c;
+  --secondary-foreground: #ffffff;
+  --muted: #f8f2f0;
+  --muted-foreground: #475569;
+  /* shadcn "accent" is the subtle hover surface; the green CTA is --cta */
+  --accent: #f8f2f0;
+  --accent-foreground: #0f172a;
+  --cta: #059669;
+  --cta-foreground: #000000;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #f2e6e2;
+  --input: #968070;
+  --ring: #9a3412;
+  --scrim: rgb(15 23 42 / 0.5);
+  --shadow-color: rgb(15 23 42 / 0.08);
+  --radius: 0.75rem;
+  color-scheme: light;
+}
+
+/* Dark theme (MASTER.md Project Additions) */
+.dark {
+  --background: #1c1612;
+  --foreground: #f5ede6;
+  --card: #26201b;
+  --card-foreground: #f5ede6;
+  --popover: #26201b;
+  --popover-foreground: #f5ede6;
+  --primary: #f0a27a;
+  --primary-foreground: #1c1612;
+  --secondary: #e58b5f;
+  --secondary-foreground: #1c1612;
+  --muted: #2e2621;
+  --muted-foreground: #bfb3a8;
+  --accent: #2e2621;
+  --accent-foreground: #f5ede6;
+  --cta: #34d399;
+  --cta-foreground: #052e1f;
+  --destructive: #f87171;
+  --destructive-foreground: #1c1612;
+  --border: #3d332c;
+  --input: #8a7a6e;
+  --ring: #f0a27a;
+  --scrim: rgb(0 0 0 / 0.6);
+  --shadow-color: rgb(0 0 0 / 0.4);
+  color-scheme: dark;
+}
+
+/* Follow the OS dark preference unless a subtree forces light */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not(.light) {
+    --background: #1c1612;
+    --foreground: #f5ede6;
+    --card: #26201b;
+    --card-foreground: #f5ede6;
+    --popover: #26201b;
+    --popover-foreground: #f5ede6;
+    --primary: #f0a27a;
+    --primary-foreground: #1c1612;
+    --secondary: #e58b5f;
+    --secondary-foreground: #1c1612;
+    --muted: #2e2621;
+    --muted-foreground: #bfb3a8;
+    --accent: #2e2621;
+    --accent-foreground: #f5ede6;
+    --cta: #34d399;
+    --cta-foreground: #052e1f;
+    --destructive: #f87171;
+    --destructive-foreground: #1c1612;
+    --border: #3d332c;
+    --input: #8a7a6e;
+    --ring: #f0a27a;
+    --scrim: rgb(0 0 0 / 0.6);
+    --shadow-color: rgb(0 0 0 / 0.4);
+    color-scheme: dark;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Spacing scale (MASTER.md Spacing Variables, density 5) */
+:root {
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+}
+
+/* Workspace override (pages/workspace.md, Dense tier) */
+[data-density="workspace"] {
+  --space-xs: 0.125rem;
+  --space-sm: 0.25rem;
+  --space-md: 0.5rem;
+  --space-lg: 0.75rem;
+  --space-xl: 1rem;
+  --space-2xl: 1.5rem;
+  --space-3xl: 2rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }

@@ -271,3 +271,14 @@ Before delivering any UI code, verify:
 ### Fonts
 
 - Headings: Varela Round. Body and UI: Nunito Sans. Both load through `next/font` (self-hosted at build time), not the Google Fonts `@import` above, to avoid a render-blocking request.
+
+### Component Spec overrides (as built in src/components/ui)
+
+| Generated spec | As built | Why |
+|---|---|---|
+| Input focus: `outline: none` + `0 0 0 3px #9A341220` | 2px solid `--ring` with a 2px offset | A 12%-alpha halo is not a visible focus indicator (ISA ISC-56, WCAG 2.4.7) |
+| Input border `#E2E8F0` | `--color-input` (`#968070` / `#8A7A6E`) | `#E2E8F0` is 1.19:1 on the background; component boundaries need 3:1 (WCAG 1.4.11) |
+| Card background `#FFFBEB` | `--color-card` | `#FFFBEB` is the page background, so cards would not separate from the page |
+| Modal background `white`, overlay `rgba(0,0,0,0.5)` | `--color-popover`, `--color-scrim` | Literal colors break the dark theme and ISA ISC-12 |
+| Button padding `12px 24px` | `min-h-11` (44px) + `px-6` | Keeps every target at 44x44px (ISA ISC-13); `sm` and icon sizes keep 44px too |
+| Input font size 16px | 16px at every width (shadcn's `md:text-sm` removed) | Matches the spec; avoids iOS zoom on focus |
