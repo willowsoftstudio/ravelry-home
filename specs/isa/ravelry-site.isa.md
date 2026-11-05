@@ -352,6 +352,7 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 - 2026-11-05 · Checks against routes that do not exist yet are pending, not passing — because a header or footer check against a 404 proves nothing: tests/e2e/routes.ts registers them as test.fixme until the feature route ships; their criteria stay unchecked although the mechanism is built (affects: ISC-3, ISC-5, ISC-7, ISC-8, ISC-64, ISC-82, ISC-83)
 - 2026-11-05 · Both themes reworked to a sleek modern neutral palette — because the principal asked for a "sleek modern dark" and then the same for light; light uses the generator's modern-minimal neutrals (zinc scale, white cards, hairline borders) and dark uses near-black charcoal with lighter surface steps for depth; terracotta stays the brand accent, and every pair still passes (text ≥ 4.83:1, UI ≥ 3.28:1) (affects: ISC-10, ISC-11, ISC-14, ISC-15)
 - 2026-11-05 · Plus Jakarta Sans for headings and body, replacing Varela Round + Nunito Sans — because the principal chose it for the sleek modern look; it is the generator's pick for "sleek minimal productivity tool"; headings 600 weight, letter-spacing -0.015em, word-spacing 0.08em (affects: ISC-14, ISC-15)
+- 2026-11-05 · Design system approved — by the principal ("approved, draft the architecture doc") after reviewing /design-system with the modern neutral/charcoal palettes and Plus Jakarta Sans; the review device was not stated (affects: ISC-15, ISC-23, ISC-32, ISC-39, ISC-48)
 
 ## Learning
 
@@ -372,6 +373,8 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 - 2026-11-04 · ISC-6 · pass · ad-network grep over src and package.json → 0 matches
 - 2026-11-04 · ISC-21 · pass · pnpm test tests/gateway/rate-limit.test.ts → 6/6 pass: 429 → 503, Retry-After 30/5/120/1/42 for none/5/999/0/date (mutation lifting the cap to 1000 fails it)
 - 2026-11-04 · ISC-72 · pass · pnpm test tests/unit/server-only-guard.test.ts → pass: fixture client component importing @/lib/ravelry/client fails next build with a server-only error (mutation removing import 'server-only' lets the build exit 0, so the test fails)
+- 2026-11-04 · ISC-15 · pass · Decisions line '2026-11-05 · Design system approved' (principal: "approved"); review device not stated
+- 2026-11-04 · ISC-15 · fail · principal approved after reviewing /design-system on desktop ("i use the desktop"); the criterion requires a phone review, so it is not met as written
 
 
 ## Articulation Log
@@ -446,3 +449,15 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 ### 2026-11-05 10:00 · discuss — font
 > "switch to Plus Jakarta Sans"
 **Settled:** Plus Jakarta Sans (next/font, self-hosted) for all text; headings semibold with slightly tighter letters and a little extra word space so display headings do not run together. MASTER.md updated. Ladder unchanged.
+
+### 2026-11-05 10:30 · restate — design system approval
+> "approved, draft the architecture doc"
+**Settled:** ISC-15 approval logged in Decisions. Next: specs/architecture.md (ISC-73) for principal approval (ISC-74).
+
+### 2026-11-05 10:40 · restate — approval device
+> "i use the desktop"
+**Settled:** the approval stands, but ISC-15 asks for a phone review, so it is unchecked again until the principal either reviews on a phone or changes the criterion.
+
+### 2026-11-05 11:30 · verify — architecture draft
+> "approved, draft the architecture doc"
+**Settled:** specs/architecture.md drafted with all 9 sections (heading check 9/9). ISC-73 left unchecked because it depends on ISC-16 and the draft carries 6 [verify] items that close with the API verification. Six decisions (D1 Upstash Redis, D2 TanStack Query, D3 24 h reference cache amending ISC-64, D4 zod, D5 encrypted tokens, D6 separate library-pdf token) await the principal; approving the document is ISC-74.
