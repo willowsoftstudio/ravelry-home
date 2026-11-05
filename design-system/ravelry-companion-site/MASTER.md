@@ -238,33 +238,36 @@ Before delivering any UI code, verify:
 
 > Everything above this line is ui-ux-pro-max output, generated with the commands logged in the ISA Decisions (2026-11-04). This section adds what the generator does not produce. It follows the skill's `color-dark-mode` and `dark-mode-pairing` rules: desaturated, lighter tonal variants, never inverted, with contrast tested per theme. No warm dark palette matched in the database, so these values are derived, not database matches.
 
-### Dark Theme Palette
+### Theme Palette (as shipped, supersedes the generated Color Palette above)
+
+> 2026-11-05: the principal asked for a sleeker, more modern look in both themes. The generator's modern-minimal results (`"modern minimal clean neutral app"`, variance 3) use cool neutral surfaces (`#F8FAFC` background, white cards, `#E2E8F0` hairlines, near-black text) with one strong accent. Both themes now sit on one neutral zinc scale and keep terracotta as the brand accent; the dark theme follows the skill's Dark Mode (OLED) guidance: near-black charcoal, elevation by lighter surfaces instead of shadows. The warm cream/brown palette of 2026-11-04 is retired.
 
 | Role | Light | Dark | CSS Variable |
 |------|-------|------|--------------|
-| Primary | `#9A3412` | `#F0A27A` | `--color-primary` |
-| On Primary | `#FFFFFF` | `#1C1612` | `--color-on-primary` |
-| Secondary | `#C2410C` | `#E58B5F` | `--color-secondary` |
-| On Secondary | `#FFFFFF` | `#1C1612` | `--color-on-secondary` |
-| Accent/CTA | `#059669` | `#34D399` | `--color-accent` |
-| On Accent/CTA | `#000000` | `#052E1F` | `--color-on-accent` |
-| Background | `#FFFBEB` | `#1C1612` | `--color-background` |
-| Foreground | `#0F172A` | `#F5EDE6` | `--color-foreground` |
-| Card | `#FFFFFF` | `#26201B` | `--color-card` |
-| Card Foreground | `#0F172A` | `#F5EDE6` | `--color-card-foreground` |
-| Muted | `#F8F2F0` | `#2E2621` | `--color-muted` |
-| Muted Foreground | `#475569` | `#BFB3A8` | `--color-muted-foreground` |
-| Border (decorative) | `#F2E6E2` | `#3D332C` | `--color-border` |
-| Input border (3:1) | `#968070` | `#8A7A6E` | `--color-input` |
+| Primary | `#C2410C` | `#F59E78` | `--color-primary` |
+| On Primary | `#FFFFFF` | `#0F0F11` | `--color-primary-foreground` |
+| Secondary | `#9A3412` | `#EA8A5E` | `--color-secondary` |
+| On Secondary | `#FFFFFF` | `#0F0F11` | `--color-secondary-foreground` |
+| Accent/CTA | `#047857` | `#34D399` | `--color-cta` |
+| On Accent/CTA | `#FFFFFF` | `#052E1F` | `--color-cta-foreground` |
+| Background | `#FAFAFA` | `#0F0F11` | `--color-background` |
+| Foreground | `#09090B` | `#F4F4F5` | `--color-foreground` |
+| Card | `#FFFFFF` | `#18181B` | `--color-card` |
+| Card Foreground | `#09090B` | `#F4F4F5` | `--color-card-foreground` |
+| Popover / Modal | `#FFFFFF` | `#1F1F23` | `--color-popover` |
+| Muted | `#F4F4F5` | `#1F1F23` | `--color-muted` |
+| Muted Foreground | `#52525B` | `#A1A1AA` | `--color-muted-foreground` |
+| Border (decorative) | `#E4E4E7` | `#2A2A2E` | `--color-border` |
+| Input border (3:1) | `#8A8A93` | `#6B6B73` | `--color-input` |
 | Destructive | `#DC2626` | `#F87171` | `--color-destructive` |
-| On Destructive | `#FFFFFF` | `#1C1612` | `--color-on-destructive` |
-| Ring | `#9A3412` | `#F0A27A` | `--color-ring` |
+| On Destructive | `#FFFFFF` | `#0F0F11` | `--color-destructive-foreground` |
+| Ring | `#C2410C` | `#F59E78` | `--color-ring` |
 
 `--color-border` is for decorative dividers only. Every form field, chip outline and other component boundary uses `--color-input`, which meets WCAG 1.4.11 (3:1). Measured ratios are in `contrast-pairs.json`.
 
 ### Photo-forward rules
 
-- Pattern and yarn photos are the main visual element; cards use `--color-card` with a 1px `--color-border` and no heavy shadows, so the photos stay dominant.
+- Pattern and yarn photos are the main visual element; cards use `--color-card` with a 1px hairline and no heavy shadows, so the photos stay dominant. In dark mode, depth comes from the surface steps background → card → popover, not from shadows.
 - Every photo has non-empty alt text and an owner credit (ISA ISC-24, ISC-25, ISC-44).
 - Reserve each photo's aspect ratio before it loads (CLS ≤ 0.1).
 

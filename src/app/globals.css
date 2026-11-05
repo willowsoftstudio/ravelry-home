@@ -53,91 +53,91 @@
   --shadow-lg: 0 10px 15px var(--shadow-color);
 }
 
-/* Light theme (MASTER.md Color Palette) */
+/* Light theme (MASTER.md Project Additions: modern neutral, 2026-11-05) */
 :root,
 .light {
-  --background: #fffbeb;
-  --foreground: #0f172a;
+  --background: #fafafa;
+  --foreground: #09090b;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #09090b;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #9a3412;
+  --popover-foreground: #09090b;
+  --primary: #c2410c;
   --primary-foreground: #ffffff;
-  --secondary: #c2410c;
+  --secondary: #9a3412;
   --secondary-foreground: #ffffff;
-  --muted: #f8f2f0;
-  --muted-foreground: #475569;
+  --muted: #f4f4f5;
+  --muted-foreground: #52525b;
   /* shadcn "accent" is the subtle hover surface; the green CTA is --cta */
-  --accent: #f8f2f0;
-  --accent-foreground: #0f172a;
-  --cta: #059669;
-  --cta-foreground: #000000;
+  --accent: #f4f4f5;
+  --accent-foreground: #09090b;
+  --cta: #047857;
+  --cta-foreground: #ffffff;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --border: #f2e6e2;
-  --input: #968070;
-  --ring: #9a3412;
-  --scrim: rgb(15 23 42 / 0.5);
-  --shadow-color: rgb(15 23 42 / 0.08);
+  --border: #e4e4e7;
+  --input: #8a8a93;
+  --ring: #c2410c;
+  --scrim: rgb(9 9 11 / 0.5);
+  --shadow-color: rgb(9 9 11 / 0.06);
   --radius: 0.75rem;
   color-scheme: light;
 }
 
-/* Dark theme (MASTER.md Project Additions) */
+/* Dark theme (MASTER.md Project Additions: modern charcoal, 2026-11-05) */
 .dark {
-  --background: #1c1612;
-  --foreground: #f5ede6;
-  --card: #26201b;
-  --card-foreground: #f5ede6;
-  --popover: #26201b;
-  --popover-foreground: #f5ede6;
-  --primary: #f0a27a;
-  --primary-foreground: #1c1612;
-  --secondary: #e58b5f;
-  --secondary-foreground: #1c1612;
-  --muted: #2e2621;
-  --muted-foreground: #bfb3a8;
-  --accent: #2e2621;
-  --accent-foreground: #f5ede6;
+  --background: #0f0f11;
+  --foreground: #f4f4f5;
+  --card: #18181b;
+  --card-foreground: #f4f4f5;
+  --popover: #1f1f23;
+  --popover-foreground: #f4f4f5;
+  --primary: #f59e78;
+  --primary-foreground: #0f0f11;
+  --secondary: #ea8a5e;
+  --secondary-foreground: #0f0f11;
+  --muted: #1f1f23;
+  --muted-foreground: #a1a1aa;
+  --accent: #1f1f23;
+  --accent-foreground: #f4f4f5;
   --cta: #34d399;
   --cta-foreground: #052e1f;
   --destructive: #f87171;
-  --destructive-foreground: #1c1612;
-  --border: #3d332c;
-  --input: #8a7a6e;
-  --ring: #f0a27a;
-  --scrim: rgb(0 0 0 / 0.6);
-  --shadow-color: rgb(0 0 0 / 0.4);
+  --destructive-foreground: #0f0f11;
+  --border: #2a2a2e;
+  --input: #6b6b73;
+  --ring: #f59e78;
+  --scrim: rgb(0 0 0 / 0.7);
+  --shadow-color: rgb(0 0 0 / 0.5);
   color-scheme: dark;
 }
 
 /* Follow the OS dark preference unless a subtree forces light */
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
-    --background: #1c1612;
-    --foreground: #f5ede6;
-    --card: #26201b;
-    --card-foreground: #f5ede6;
-    --popover: #26201b;
-    --popover-foreground: #f5ede6;
-    --primary: #f0a27a;
-    --primary-foreground: #1c1612;
-    --secondary: #e58b5f;
-    --secondary-foreground: #1c1612;
-    --muted: #2e2621;
-    --muted-foreground: #bfb3a8;
-    --accent: #2e2621;
-    --accent-foreground: #f5ede6;
+    --background: #0f0f11;
+    --foreground: #f4f4f5;
+    --card: #18181b;
+    --card-foreground: #f4f4f5;
+    --popover: #1f1f23;
+    --popover-foreground: #f4f4f5;
+    --primary: #f59e78;
+    --primary-foreground: #0f0f11;
+    --secondary: #ea8a5e;
+    --secondary-foreground: #0f0f11;
+    --muted: #1f1f23;
+    --muted-foreground: #a1a1aa;
+    --accent: #1f1f23;
+    --accent-foreground: #f4f4f5;
     --cta: #34d399;
     --cta-foreground: #052e1f;
     --destructive: #f87171;
-    --destructive-foreground: #1c1612;
-    --border: #3d332c;
-    --input: #8a7a6e;
-    --ring: #f0a27a;
-    --scrim: rgb(0 0 0 / 0.6);
-    --shadow-color: rgb(0 0 0 / 0.4);
+    --destructive-foreground: #0f0f11;
+    --border: #2a2a2e;
+    --input: #6b6b73;
+    --ring: #f59e78;
+    --scrim: rgb(0 0 0 / 0.7);
+    --shadow-color: rgb(0 0 0 / 0.5);
     color-scheme: dark;
   }
 }
