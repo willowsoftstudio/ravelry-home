@@ -14,6 +14,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Vendored Claude Code skills and generated design-system docs are not app code.
     ".claude/**",
+    ".next-guard/**",
     "design-system/**",
   ]),
 ]);

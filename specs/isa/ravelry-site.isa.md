@@ -6,7 +6,7 @@ status: aligned
 principal: "The requester (project owner at /home/jhollenbeck/ravelry), who also leads the small invited private-beta group"
 created: 2026-11-01
 updated: 2026-11-04
-progress: 9/75
+progress: 12/75
 ---
 
 ## Ideal State
@@ -111,7 +111,7 @@ Why: The work ships correct, safe and inside its boundaries.
 - [ ] ISC-3: Anti: a Ravelry client secret, read-only credential or OAuth token reaches the browser (probe: sentinel values for RAVELRY_CLIENT_SECRET and RAVELRY_READONLY_PASSWORD set at build time appear in 0 files under .next/static; after mocked sign-in 0 token strings appear in localStorage, sessionStorage, document.cookie or browser-bound response bodies; the session cookie is HttpOnly, Secure and SameSite=Lax) (after: ISC-1)
 - [ ] ISC-4: Anti: scraping ravelry.com or calling undocumented endpoints (probe: during the smoke run of every route, each server-side outbound request goes to api.ravelry.com on a path whose capability is confirmed in specs/ravelry-api-verification.md, to auth.ravelry.com/oauth2/*, or to an image or delivery host listed in that note; 0 other requests) (after: ISC-1, ISC-16)
 - [ ] ISC-5: Anti: branding implies Ravelry endorsement: every page renders a footer notice containing 'not affiliated with Ravelry', and the repo ships 0 Ravelry logo assets (after: ISC-1, ISC-9)
-- [ ] ISC-6: Anti: monetization or commercial use (probe: src and package.json contain 0 references to ad networks or ad tags: googlesyndication, doubleclick.net, amazon-adsystem, adsbygoogle, adservice.google; affiliate URL parameters are covered by ISC-53) (after: ISC-1)
+- [x] ISC-6: Anti: monetization or commercial use (probe: src and package.json contain 0 references to ad networks or ad tags: googlesyndication, doubleclick.net, amazon-adsystem, adsbygoogle, adservice.google; affiliate URL parameters are covered by ISC-53) (after: ISC-1)
 - [ ] ISC-7: Anti: the site handles payment card data or runs a separate payment processor (probe: on /patterns/<paid fixture id> and /me/library 0 inputs have an autocomplete value starting cc- or a name/id matching card, cvc, cvv or expir; package.json lists 0 payment SDKs: stripe, @stripe/*, braintree*, @paypal/*, square, @adyen/*) (after: ISC-1)
 - [ ] ISC-8: Anti: public launch (probe: the responses for /, /patterns, /patterns/<fixture id>, /yarns, /yarns/<fixture id>, /community, /me, /me/library and /design-system each carry an X-Robots-Tag header containing noindex; GET /robots.txt has a line exactly 'Disallow: /') (after: ISC-1)
 - [ ] ISC-45: Every UI control for a write or purchase capability (queue, stash, favorites or project write, photo upload, forum post, message send, Buy, checkout) is not rendered when specs/ravelry-api-verification.md marks that capability unconfirmed, with the app's capability config generated from that note (after: ISC-16)
@@ -146,14 +146,14 @@ Reach: Header → Sign in with Ravelry button; /api/* route handlers (server onl
 - [ ] ISC-18: The OAuth callback for a Ravelry username not on the server-side allowlist responds 403 with 0 session cookies set and 0 tokens stored server-side (after: ISC-17)
 - [ ] ~~ISC-19: Anti: the Ravelry client secret, read-only API key, or any OAuth access/refresh token appears in a client JS bundle, localStorage, sessionStorage, or a non-httpOnly cookie (after: ISC-17)~~ (retired 2026-11-01: merged into ISC-3)
 - [ ] ISC-20: A /api/me/* request made with an expired access token and a valid refresh token gets 200 after a server-side token exchange, with 0 redirects to www.ravelry.com (after: ISC-17)
-- [ ] ISC-21: When Ravelry answers an upstream request with HTTP 429, the site's API route returns 503 with an integer Retry-After header from 1 to 120 (after: ISC-1)
+- [x] ISC-21: When Ravelry answers an upstream request with HTTP 429, the site's API route returns 503 with an integer Retry-After header from 1 to 120 (after: ISC-1)
 - [ ] ~~ISC-22: Anti: the server sends any data request to a host other than api.ravelry.com (no fetching of ravelry.com HTML pages; OAuth endpoints on www.ravelry.com/oauth2/ are the only exception) (after: ISC-1)~~ (retired 2026-11-01: duplicate of ISC-4, conflicted with photo and delivery hosts)
 - [ ] ISC-65: After POST /api/auth/signout, a replay of the old session cookie on /api/me/projects gets 401 with 0 token records left for that user (probe: the response to the sign-out also clears the session cookie) (after: ISC-17)
 - [ ] ISC-84: With RAVELRY_REDIRECT_URI=https://example.test/cb, the sign-in redirect and the token exchange both send redirect_uri=https://example.test/cb exactly (probe: with it unset, both send <APP_URL>/api/auth/callback) (after: ISC-17)
 - [ ] ISC-69: A live Ravelry OAuth sign-in started on PROD_URL returns to PROD_URL/me with HTTP 200 for the principal (after: ISC-17, ISC-67)
 - [ ] ISC-71: Every response for /me/* and /api/me/* carries a Cache-Control value containing private or no-store (after: ISC-17)
 - [ ] ISC-78: Every public /api/patterns* and /api/yarns* response carries a Cache-Control s-maxage from 1 to 300 (after: ISC-17)
-- [ ] ISC-72: A client component that imports the Ravelry API client module fails the production build (after: ISC-1)
+- [x] ISC-72: A client component that imports the Ravelry API client module fails the production build (after: ISC-1)
 - [ ] ISC-73: specs/architecture.md has one section for each of 9 topics: Design system, API gateway, Sessions, Caching, Vercel runtime, Discovery, Workspace, Community, Purchasing (after: ISC-16)
 - [ ] ISC-74: The ISA Decisions section holds a dated entry 'Architecture approved' written by the principal after review of specs/architecture.md (after: ISC-73)
 
@@ -349,6 +349,7 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 - 2026-11-04 · Variance set to 3 instead of the default — because with no variance the generator picked Claymorphism (chunky borders that compete with photos, dark mode only "conditional"); variance 3 keeps the same palette and fonts and selects Minimalism & Swiss Style with full light and dark support (affects: ISC-9, ISC-10)
 - 2026-11-04 · Dark theme and --color-input are hand-derived in MASTER.md "Project Additions" — because the generator has no warm dark palette; every text pair is at least 4.83:1 and every UI pair at least 3.6:1 in both themes (design-system/ravelry-companion-site/contrast-pairs.json) (affects: ISC-10, ISC-11)
 - 2026-11-04 · Workspace uses the generator's Dense-tier spacing (density 8 table) — because the principal wanted a tighter workspace, and density 7 falls in the same Standard tier as Master; 44x44 targets are kept (affects: ISC-13, ISC-76)
+- 2026-11-05 · Checks against routes that do not exist yet are pending, not passing — because a header or footer check against a 404 proves nothing: tests/e2e/routes.ts registers them as test.fixme until the feature route ships; their criteria stay unchecked although the mechanism is built (affects: ISC-3, ISC-5, ISC-7, ISC-8, ISC-64, ISC-82, ISC-83)
 
 ## Learning
 
@@ -366,6 +367,9 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 - 2026-11-04 · ISC-11 · pass · pnpm test tests/unit/design-tokens.contrast.test.ts → 3/3 pass, 15 pairs recomputed from globals.css (mutation to #e2e8f0 input fails at 1.19:1)
 - 2026-11-04 · ISC-12 · pass · color-literal grep over src excluding globals.css → 0 matches
 - 2026-11-04 · ISC-14 · pass · pnpm test:e2e design-system-catalog + a11y/design-system --project=mobile-375 → 5/5 pass: 4/4 MASTER components in both panels; 0 axe violations light, dark, open modal (mutation to low-contrast muted text fails with color-contrast)
+- 2026-11-04 · ISC-6 · pass · ad-network grep over src and package.json → 0 matches
+- 2026-11-04 · ISC-21 · pass · pnpm test tests/gateway/rate-limit.test.ts → 6/6 pass: 429 → 503, Retry-After 30/5/120/1/42 for none/5/999/0/date (mutation lifting the cap to 1000 fails it)
+- 2026-11-04 · ISC-72 · pass · pnpm test tests/unit/server-only-guard.test.ts → pass: fixture client component importing @/lib/ravelry/client fails next build with a server-only error (mutation removing import 'server-only' lets the build exit 0, so the test fails)
 
 
 ## Articulation Log
@@ -428,3 +432,7 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 ### 2026-11-04 22:45 · verify — /design-system built
 > "yes, commit and build /design-system"
 **Settled:** first commit 5af059b (ISC-2 pass). shadcn/ui (base-nova, Base UI) added and themed from MASTER.md: tokens in src/app/globals.css (light, dark class, OS dark preference, workspace density), button and input at 44px with a solid 2px focus ring, dialog scrim token. /design-system catalog renders Buttons, Cards, Inputs and Modals in light and dark panels. ISC-10, ISC-11, ISC-12 and ISC-14 pass, each with a mutation check proving the test can fail. Component-spec overrides recorded in MASTER.md. Next: principal reviews /design-system on a phone for ISC-15.
+
+### 2026-11-05 00:10 · verify — cross-cutting frontier, no deploy
+> "do everything except the actual deploy"
+**Settled:** built the noindex header and robots.txt, web manifest, server-only Ravelry client with read-only basic auth and a 10 s timeout, the 429 → 503 Retry-After mapping, and /api/patterns. ISC-6, ISC-21 and ISC-72 pass, each with a mutation check. ISC-3, ISC-5, ISC-7, ISC-8, ISC-64 and ISC-82 have their mechanism and every check that can run today passing; their remaining checks need feature routes or sign-in and are registered as pending tests. Deploy criteria (ISC-67, ISC-68, ISC-70, ISC-77) not started, as asked. Ladder unchanged.
