@@ -273,7 +273,7 @@ Before delivering any UI code, verify:
 
 ### Fonts
 
-- Headings: Varela Round. Body and UI: Nunito Sans. Both load through `next/font` (self-hosted at build time), not the Google Fonts `@import` above, to avoid a render-blocking request.
+- **Plus Jakarta Sans** for headings and body (supersedes the generated Varela Round + Nunito Sans above, 2026-11-05). The principal chose it for a sleeker, modern look; it is the generator's pick for "sleek minimal productivity tool". Headings use weight 600 with letter-spacing -0.015em and word-spacing 0.08em (the font's narrow word space plus full `tracking-tight` crowds the word gap at display sizes); body uses 400–500 at 16px minimum. Loaded through `next/font` (self-hosted at build time), not a Google Fonts `@import`, to avoid a render-blocking request.
 
 ### Component Spec overrides (as built in src/components/ui)
 

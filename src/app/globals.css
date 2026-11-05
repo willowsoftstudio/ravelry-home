@@ -39,8 +39,8 @@
   --color-ring: var(--ring);
   --color-scrim: var(--scrim);
 
-  --font-sans: var(--font-body);
-  --font-heading: var(--font-display);
+  --font-sans: var(--font-jakarta);
+  --font-heading: var(--font-jakarta);
 
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -178,7 +178,7 @@
   h2,
   h3,
   h4 {
-    @apply font-heading;
+    @apply font-heading font-semibold tracking-[-0.015em] [word-spacing:0.08em];
   }
   button:not(:disabled),
   [role="button"]:not(:disabled) {

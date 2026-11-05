@@ -351,6 +351,7 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 - 2026-11-04 · Workspace uses the generator's Dense-tier spacing (density 8 table) — because the principal wanted a tighter workspace, and density 7 falls in the same Standard tier as Master; 44x44 targets are kept (affects: ISC-13, ISC-76)
 - 2026-11-05 · Checks against routes that do not exist yet are pending, not passing — because a header or footer check against a 404 proves nothing: tests/e2e/routes.ts registers them as test.fixme until the feature route ships; their criteria stay unchecked although the mechanism is built (affects: ISC-3, ISC-5, ISC-7, ISC-8, ISC-64, ISC-82, ISC-83)
 - 2026-11-05 · Both themes reworked to a sleek modern neutral palette — because the principal asked for a "sleek modern dark" and then the same for light; light uses the generator's modern-minimal neutrals (zinc scale, white cards, hairline borders) and dark uses near-black charcoal with lighter surface steps for depth; terracotta stays the brand accent, and every pair still passes (text ≥ 4.83:1, UI ≥ 3.28:1) (affects: ISC-10, ISC-11, ISC-14, ISC-15)
+- 2026-11-05 · Plus Jakarta Sans for headings and body, replacing Varela Round + Nunito Sans — because the principal chose it for the sleek modern look; it is the generator's pick for "sleek minimal productivity tool"; headings 600 weight, letter-spacing -0.015em, word-spacing 0.08em (affects: ISC-14, ISC-15)
 
 ## Learning
 
@@ -441,3 +442,7 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 ### 2026-11-05 09:30 · discuss — sleeker themes
 > "can we make dark theme more sleek modern dark" / "change the light too - modern slkeek" / "good"
 **Settled:** dark moves from warm brown to near-black charcoal (#0F0F11 → #18181B → #1F1F23 surfaces); light moves from cream to neutral (#FAFAFA, white cards, #E4E4E7 hairlines, #09090B text); terracotta stays the accent (#C2410C light, #F59E78 dark). ISC-10, ISC-11 and ISC-14 re-run and still pass (7/7 unit, 5/5 e2e, 0 axe violations both themes). L1 and the visual-direction constraint reworded; L3/L2 unchanged, so no Restate. Fonts unchanged pending the principal's choice.
+
+### 2026-11-05 10:00 · discuss — font
+> "switch to Plus Jakarta Sans"
+**Settled:** Plus Jakarta Sans (next/font, self-hosted) for all text; headings semibold with slightly tighter letters and a little extra word space so display headings do not run together. MASTER.md updated. Ladder unchanged.
