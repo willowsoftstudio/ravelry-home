@@ -1,8 +1,8 @@
 # Architecture: Niddy v1 (private beta)
 
-Status: **draft for principal approval** (ISA ISC-73 → ISC-74) · 2026-11-05
+Status: **approved by the principal 2026-11-05** (ISA ISC-74), with all six decisions. The [verify] items close with the API verification (ISC-16).
 
-This document covers all four v1 areas end to end before any feature is built. It follows the ISA (`specs/isa/ravelry-site.isa.md`), the API facts in `specs/ravelry-api-verification.md`, and the docs that ship with Next.js 16.4.5 (`node_modules/next/dist/docs/`). Points that still depend on unverified API facts are marked **[verify]**. The decisions that need your sign-off are collected in [Decisions to approve](#decisions-to-approve).
+This document covers all four v1 areas end to end before any feature is built. It follows the ISA (`specs/isa/ravelry-site.isa.md`), the API facts in `specs/ravelry-api-verification.md`, and the docs that ship with Next.js 16.4.5 (`node_modules/next/dist/docs/`). Points that still depend on unverified API facts are marked **[verify]**. The decisions that need your sign-off are collected in [Decisions](#decisions-approved-2026-11-05).
 
 ## Overview
 
@@ -141,13 +141,13 @@ The Ravelry docs show that `carts/*` and `external_checkout` serve **seller stor
 - **Library.** `/me/library` merges `library/search` (the user's volumes) with `deliveries/list` (purchases and gifts, scope `deliveries-read`). After returning from ravelry.com, a "Refresh library" action reloads the page. The purchase shows up on the next load (ISC-51).
 - **Download.** `GET /api/me/library/[id]/download` checks that the session user owns the volume (401 without a session, 403 for another user's), gets the PDF-scoped token (starting the `library-pdf` consent the first time), calls `product_attachments/generate_download_link`, and returns a 302 to that expiring link. The PDF never passes through our servers.
 
-## Decisions to approve
+## Decisions (approved 2026-11-05)
 
 | # | Decision | Recommendation | Why |
 |---|---|---|---|
 | D1 | Shared cache and session store | **Upstash Redis** via the Vercel Marketplace | Serverless `use cache` doesn't persist across requests, and sessions need shared storage. `use cache: remote` is the alternative, if Vercel provides the handler. |
 | D2 | Client data layer for discovery and workspace writes | **TanStack Query v5** | Its in-session cache and request deduplication meet ISC-30 and ISC-31 without hand-rolled code. It's one dependency. |
-| D3 | Reference-list cache TTL | **24 h, amending ISC-64** | ISC-64 caps every cached Ravelry response at 300 s, but Ravelry's own docs recommend 24 h for attribute and category lists. The amendment would let `ref:*` keys live 24 h and keep 300 s for everything else. |
+| D3 | Reference-list cache TTL | **24 h (ISC-64 amended)** | ISC-64 caps every cached Ravelry response at 300 s, but Ravelry's own docs recommend 24 h for attribute and category lists. The amendment would let `ref:*` keys live 24 h and keep 300 s for everything else. |
 | D4 | Response validation | **zod** at the gateway boundary | A shape change in Ravelry's API then fails in one place with a clear error. |
 | D5 | Session token storage | **AES-256-GCM-encrypted tokens** in Redis, with only a session id in the cookie | If the Redis credentials leaked, the tokens would still be unreadable. |
 | D6 | PDF scope | **A separate, on-demand `library-pdf` token** | Follows Ravelry's own advice, so the main token doesn't expire early. |

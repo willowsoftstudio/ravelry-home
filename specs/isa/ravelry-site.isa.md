@@ -6,7 +6,7 @@ status: aligned
 principal: "The requester (project owner at /home/jhollenbeck/ravelry), who also leads the small invited private-beta group"
 created: 2026-11-01
 updated: 2026-11-04
-progress: 12/75
+progress: 13/75
 ---
 
 ## Ideal State
@@ -116,7 +116,7 @@ Why: The work ships correct, safe and inside its boundaries.
 - [ ] ISC-8: Anti: public launch (probe: the responses for /, /patterns, /patterns/<fixture id>, /yarns, /yarns/<fixture id>, /community, /me, /me/library and /design-system each carry an X-Robots-Tag header containing noindex; GET /robots.txt has a line exactly 'Disallow: /') (after: ISC-1)
 - [ ] ISC-45: Every UI control for a write or purchase capability (queue, stash, favorites or project write, photo upload, forum post, message send, Buy, checkout) is not rendered when specs/ravelry-api-verification.md marks that capability unconfirmed, with the app's capability config generated from that note (after: ISC-16)
 - [ ] ISC-56: The search, filter-sheet, add-to-queue and Buy on Ravelry flows each complete by keyboard alone, with a visible focus indicator (outline or ring of at least 2 CSS px) on every focused control (after: ISC-33, ISC-79)
-- [ ] ISC-64: Anti: a local store replaces Ravelry as source of truth (probe: package.json lists 0 ORM or entity-database packages: prisma, @prisma/client, drizzle-orm, typeorm, sequelize, mongoose, mongodb; after a workspace smoke run the server holds only session/token records, and every cached Ravelry response has a TTL of 300 s or less) (after: ISC-1)
+- [ ] ISC-64: Anti: a local store replaces Ravelry as source of truth (probe: package.json lists 0 ORM or entity-database packages: prisma, @prisma/client, drizzle-orm, typeorm, sequelize, mongoose, mongodb; after a workspace smoke run the server holds only session/token records, and every cached Ravelry response has a TTL of 300 s or less, except reference lists (yarn weights, pattern categories and attributes, fiber attributes, color families) at 24 h or less) (after: ISC-1)
 - [ ] ISC-67: The production Vercel deployment at PROD_URL answers GET / with HTTP 200 and an x-vercel-id response header (after: ISC-1)
 - [ ] ISC-68: A pull request's Vercel preview deployment answers GET / with 401 when no protection-bypass header is sent (after: ISC-67)
 - [ ] ISC-77: A pull request's Vercel preview deployment answers GET / with 200 when the protection-bypass header is sent (after: ISC-67)
@@ -134,7 +134,7 @@ Why: A documented design system generated with ui-ux-pro-max (tokens, type, colo
 - [x] ISC-12: Anti: regression — a file under src other than src/app/globals.css contains a color literal (hex in a color, fill, stroke or background value, rgb(), hsl(), oklch(), oklab(), arbitrary Tailwind color [#...]) or a default Tailwind palette class such as bg-red-500 (after: ISC-10)
 - [ ] ISC-13: At 375x812, every button, input, chip, tab and standalone link (links inline in a sentence of text excluded, per WCAG 2.5.8) on /, /patterns with the filter sheet open, /patterns/<id>, /yarns, /yarns/<id>, /me, /community, /me/library and /design-system has a bounding box of at least 44x44 CSS px (after: ISC-14, ISC-23, ISC-32, ISC-39, ISC-79)
 - [x] ISC-14: A /design-system catalog route renders every component listed under Component Specs in MASTER.md, in light and dark themes, with 0 axe-core violations of any impact for tags wcag2a, wcag2aa, wcag21a, wcag21aa, wcag22aa (after: ISC-9, ISC-10)
-- [ ] ISC-15: The ISA Decisions section holds a dated entry 'Design system approved' written by the principal after review of MASTER.md and /design-system on a phone (after: ISC-14)
+- [x] ISC-15: The ISA Decisions section holds a dated entry 'Design system approved' written by the principal after review of MASTER.md and /design-system (a desktop review is accepted; the phone layout is covered by the mobile e2e projects and screenshots) (after: ISC-14)
 - [x] ISC-76: design-system/ravelry-companion-site/pages/workspace.md exists as the ui-ux-pro-max page override for the /me workspace, generated with --page workspace --density 7 --motion 3 (after: ISC-9)
 
 ### F2 · RavelryAuthAndApiGateway
@@ -244,7 +244,7 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 | ISC-45 | bash | generated capability config matches the verification note | exit 0 | `node scripts/check-capabilities-sync.mjs` | L2.b4 |
 | ISC-56 | test | keyboard-only Playwright run of 4 flows | 4 of 4 flows complete; computed outline or ring width >= 2px on each focused element | `pnpm test:e2e tests/e2e/a11y/keyboard-flows.spec.ts --project=desktop` | L2.b4 |
 | ISC-64 | bash | no ORM or entity-database package in dependencies | 0 matching dependency names | `test -f package.json && ! jq -r '(.dependencies // {}) + (.devDependencies // {}) \| keys[]' package.json \| grep -Eix 'prisma\|@prisma/client\|drizzle-orm\|typeorm\|sequelize\|mongoose\|mongodb'` | scope |
-| ISC-64 | test | unit test lists server stores and cache entries after a workspace smoke run | 0 stores other than the session/token store; max cache TTL <= 300 s | `pnpm test tests/gateway/no-shadow-store.test.ts` | scope |
+| ISC-64 | test | unit test lists server stores and cache entries after a workspace smoke run | 0 Redis key prefixes outside session:, oauth:, refresh:, rc:, ref:, unread:; max TTL <= 300 s for rc:, <= 86400 s for ref: | `pnpm test tests/gateway/no-shadow-store.test.ts` | scope |
 | ISC-67 | curl | production deployment serves the home page from Vercel | 200 + x-vercel-id header | `curl -sfI "$PROD_URL" \| grep -qi '^x-vercel-id:'` | L2 |
 | ISC-68 | curl | preview deployment rejects requests without the bypass header | 401 | `test "$(curl -so /dev/null -w '%{http_code}' "$PREVIEW_URL")" = 401` | L2.b4 |
 | ISC-77 | curl | preview deployment serves the home page with the bypass header | 200 | `test "$(curl -so /dev/null -w '%{http_code}' -H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET" "$PREVIEW_URL")" = 200` | L2 |
@@ -353,6 +353,9 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 - 2026-11-05 · Both themes reworked to a sleek modern neutral palette — because the principal asked for a "sleek modern dark" and then the same for light; light uses the generator's modern-minimal neutrals (zinc scale, white cards, hairline borders) and dark uses near-black charcoal with lighter surface steps for depth; terracotta stays the brand accent, and every pair still passes (text ≥ 4.83:1, UI ≥ 3.28:1) (affects: ISC-10, ISC-11, ISC-14, ISC-15)
 - 2026-11-05 · Plus Jakarta Sans for headings and body, replacing Varela Round + Nunito Sans — because the principal chose it for the sleek modern look; it is the generator's pick for "sleek minimal productivity tool"; headings 600 weight, letter-spacing -0.015em, word-spacing 0.08em (affects: ISC-14, ISC-15)
 - 2026-11-05 · Design system approved — by the principal ("approved, draft the architecture doc") after reviewing /design-system with the modern neutral/charcoal palettes and Plus Jakarta Sans; the review device was not stated (affects: ISC-15, ISC-23, ISC-32, ISC-39, ISC-48)
+- 2026-11-05 · Architecture approved — by the principal, with all six decisions: D1 Upstash Redis, D2 TanStack Query, D3 24 h reference-list cache, D4 zod at the gateway, D5 AES-256-GCM-encrypted tokens with only a session id in the cookie, D6 a separate on-demand library-pdf token; the [verify] items in specs/architecture.md close with ISC-16 (affects: ISC-73, ISC-74, ISC-23)
+- 2026-11-05 · ISC-64 amended: reference lists may be cached up to 24 h — because Ravelry's docs recommend caching attribute and category lists for up to 24 hours, and the principal chose to follow them; all other cached responses stay at 300 s or less (affects: ISC-64)
+- 2026-11-05 · ISC-15 amended: a desktop review is accepted — because the principal reviewed /design-system on desktop and judged the mobile e2e projects (360, 375, 390 px) plus phone screenshots enough for the phone layout (affects: ISC-15)
 
 ## Learning
 
@@ -375,6 +378,7 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 - 2026-11-04 · ISC-72 · pass · pnpm test tests/unit/server-only-guard.test.ts → pass: fixture client component importing @/lib/ravelry/client fails next build with a server-only error (mutation removing import 'server-only' lets the build exit 0, so the test fails)
 - 2026-11-04 · ISC-15 · pass · Decisions line '2026-11-05 · Design system approved' (principal: "approved"); review device not stated
 - 2026-11-04 · ISC-15 · fail · principal approved after reviewing /design-system on desktop ("i use the desktop"); the criterion requires a phone review, so it is not met as written
+- 2026-11-04 · ISC-15 · pass · Decisions '2026-11-05 · Design system approved' by the principal after a desktop review, accepted by the amended criterion (Decision 2026-11-05)
 
 
 ## Articulation Log
@@ -461,3 +465,7 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 ### 2026-11-05 11:30 · verify — architecture draft
 > "approved, draft the architecture doc"
 **Settled:** specs/architecture.md drafted with all 9 sections (heading check 9/9). ISC-73 left unchecked because it depends on ISC-16 and the draft carries 6 [verify] items that close with the API verification. Six decisions (D1 Upstash Redis, D2 TanStack Query, D3 24 h reference cache amending ISC-64, D4 zod, D5 encrypted tokens, D6 separate library-pdf token) await the principal; approving the document is ISC-74.
+
+### 2026-11-05 11:45 · discuss — architecture and two amendments
+> Architecture: "Approve all six". ISC-64 cache TTL: "Amend: 24 h for lists". ISC-15: "Desktop + mobile tests is fine"
+**Settled:** architecture approved (Decisions); ISC-73 and ISC-74 stay unchecked until ISC-16 closes the [verify] items. ISC-64 and ISC-15 reworded as above, both logged as direction changes. Ladder unchanged.
