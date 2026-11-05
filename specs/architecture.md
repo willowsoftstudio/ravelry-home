@@ -20,15 +20,15 @@ This document covers all four v1 areas end to end before any feature is built. I
    │     client · endpoints · auth · cache · errors · capabilities · egress allowlist
    │        │                      │
    │        ▼                      ▼
-   │   api.ravelry.com        Upstash Redis (Vercel Marketplace)
-   │   auth.ravelry.com         sessions + tokens (encrypted), public response cache
+   │   api.ravelry.com        (no database: sessions live in an encrypted HttpOnly cookie)
+   │   auth.ravelry.com
    │
    └── Vercel CDN ───────── caches public /api/patterns*, /api/yarns* (s-maxage ≤ 300)
 ```
 
 **Rules that hold everywhere**
 
-1. Ravelry is the only source of truth. We cache reads and never keep a copy that can diverge (ISC-64). There is no database, only Redis for sessions and short-lived caches.
+1. Ravelry is the only source of truth. We cache reads and never keep a copy that can diverge (ISC-64). There is no database and no key-value store: the session lives in an encrypted cookie, and caching is done by Vercel's CDN.
 2. Credentials and tokens never leave the server. Everything that touches them imports `server-only`, so the build fails if a Client Component imports it (ISC-72, proven by a test).
 3. Every outbound request goes through one client that enforces an allowlist of hosts and confirmed capabilities (ISC-4, ISC-45).
 4. Write controls show success only after Ravelry returns 2xx, and they display Ravelry's returned value (ISC-33, ISC-34).
@@ -54,7 +54,7 @@ Built and tested. The source of truth is `design-system/ravelry-companion-site/M
 | `capabilities.ts` | Generated at build by `scripts/gen-capabilities.mjs` from the verification note. The UI reads it to hide controls for unconfirmed capabilities (ISC-45). A sync check fails CI if it drifts. |
 | `endpoints/*.ts` | One typed function per Ravelry method used (`patterns.search`, `queue.create`, …). Responses are parsed with **zod** at the boundary, so a shape change in Ravelry fails loudly at the gateway instead of breaking a page silently. Pagination is capped at `page_size ≤ 100` (friends activity ≤ 50). |
 | `auth.ts` | Read-only basic auth for public reads; the session's OAuth 2.1 bearer token for user reads and writes. Handles token refresh (see Sessions). |
-| `cache.ts` | Shared response cache in Redis (see Caching). |
+| `cache.ts` | Per-request memoization and `If-None-Match` revalidation for server-side reads (see Caching). |
 | `route-errors.ts` | Maps gateway failures to our API's responses: 429 → 503 with `Retry-After` 1–120 s (ISC-21, exists today), 503/504 → 503, timeout → 504, 401 → refresh once then 401, anything else → 502. |
 
 **Rate-limit behavior.** Ravelry publishes no general limit (only 100/day for PDF links, and a limit on forum votes), so the design assumes a tight one. User-facing reads do not retry automatically after a 429: they fail fast with 503 + `Retry-After`, and the page shows a retry message. Background polling (the unread badge) backs off exponentially from 60 s to 15 min. Writes are never retried automatically, because a duplicate POST to Ravelry could double-apply.
@@ -63,24 +63,27 @@ Built and tested. The source of truth is `design-system/ravelry-companion-site/M
 
 ## Sessions
 
-OAuth 2.1 with PKCE against `auth.ravelry.com` (verified in the docs).
+OAuth 2.1 with PKCE against `auth.ravelry.com` (verified in the docs and in Ravelry's discovery document). **No server-side session store** (decision D1, 2026-11-05): the session is sealed into an encrypted, HttpOnly cookie, so local development and the beta need no database.
+
+**Sealing.** `src/lib/session/seal.ts` encrypts JSON with AES-256-GCM using a key derived (HKDF-SHA256) from `SESSION_SECRET`, with a random 96-bit nonce per seal. Tampering fails the GCM tag check, and an unreadable cookie counts as signed out. Rotating `SESSION_SECRET` signs everyone out.
 
 **Sign-in** (`GET /api/auth/signin` → Ravelry → `GET /api/auth/callback`)
 
-1. Generate `state` (32 random bytes) and a PKCE `code_verifier`. Store both in Redis under `oauth:<state>` with a 10-minute TTL, along with the `returnTo` path (used by ISC-49-style returns to the page the user started on).
+1. Generate `state` (32 random bytes) and a PKCE `code_verifier`. Seal `{state, verifier, returnTo, exp: now + 10 min}` into a short-lived cookie `__Host-oauth` (HttpOnly, Secure, SameSite=Lax, Max-Age 600).
 2. Redirect (307) to `https://auth.ravelry.com/oauth2/auth` with `response_type=code`, `client_id`, `redirect_uri` from `RAVELRY_REDIRECT_URI` (default `APP_URL/api/auth/callback`, ISC-84), `scope=offline_access forum-write message-write deliveries-read`, `state`, `code_challenge` and `code_challenge_method=S256` (ISC-17).
-3. On callback, look up and delete `oauth:<state>` (single use), exchange the code at `/oauth2/token` with the client id and secret in the `Authorization` header and the `code_verifier`, then call `/current_user.json`.
-4. If the username is not in `BETA_ALLOWLIST`, respond 403, set no cookie and store no tokens (ISC-18).
-5. Otherwise create a session: `sid` = 32 random bytes. Store `session:<sid>` = `{ username, userId, accessToken, refreshToken, expiresAt, scopes }`, with the tokens AES-256-GCM-encrypted using a key derived from `SESSION_SECRET`. The Redis TTL is 30 days, sliding.
-6. Set the cookie `__Host-sid=<sid>; HttpOnly; Secure; SameSite=Lax; Path=/` (ISC-3). The cookie holds only the id. The `__Host-` prefix pins it to our origin.
+3. On callback, open `__Host-oauth`, check that `state` matches and hasn't expired, then **delete the cookie** (single use). Exchange the code at `/oauth2/token` with the client id and secret in the `Authorization` header and the `code_verifier`, then call `/current_user.json`.
+4. If the username is not in `BETA_ALLOWLIST`, revoke the new tokens, respond 403 and set no session cookie (ISC-18).
+5. Otherwise seal `{ username, userId, accessToken, refreshToken, expiresAt, scopes, issuedAt }` into `__Host-sid` (HttpOnly, Secure, SameSite=Lax, Path=/, Max-Age 14 days) (ISC-3). The `__Host-` prefix pins it to our origin. Sealed, it is well under the 4 KB cookie limit.
 
-**Refresh.** Access tokens last 1 hour. Before any user call, if `expiresAt − 60 s < now`, refresh under a Redis lock (`SET refresh:<sid> NX PX 10000`), so parallel requests don't race. Other requests wait for the lock, then reread the session (ISC-20). If the refresh fails with 400/401, the session is destroyed and the user is sent to sign-in. **[verify]** whether Ravelry rotates refresh tokens. The design stores the new one either way.
+**Refresh.** Access tokens last 1 hour. If `expiresAt − 60 s < now`, the server refreshes at `/oauth2/token`, reseals the cookie with the new tokens, and sets it on that response (ISC-20). Without a shared lock, two requests can race to refresh. The client avoids this by routing user calls through one TanStack Query client, and the gateway retries once with the fresher cookie if a refresh fails. **[verify]** whether Ravelry rotates refresh tokens, at the first real sign-in. If it does and races show up in practice, a lock store gets added then.
 
-**PDF downloads.** Ravelry says `library-pdf` tokens expire sooner and can expire on rate limits. They are requested **separately**, the first time a user taps Download, through a second OAuth round trip with `scope=library-pdf`. The token is stored as `pdfToken` on the same session. The main session never carries that scope.
+**Session lifetime.** The cookie expires after 14 days. After that the user signs in again, which renews consent and bounds how long a copied cookie could live.
 
-**Sign-out** (`POST /api/auth/signout`). Delete `session:<sid>`, clear the cookie, and redirect to `/`. Replaying the old cookie gets 401 (ISC-65).
+**PDF downloads.** Ravelry says `library-pdf` tokens expire sooner and can expire on rate limits. They are requested **separately**, the first time a user taps Download, through a second OAuth round trip with `scope=library-pdf`. The token is sealed into its own cookie, `__Host-pdf` (HttpOnly, Path=/api/me/library, Max-Age 1 h), so the main token never carries that scope.
 
-**Gate.** `proxy.ts` (Next 16's replacement for middleware, Node.js runtime) redirects requests for `/me/*` and `/community/*` without a session cookie to `/api/auth/signin?returnTo=…` with a 307 (ISC-39). This is only an optimistic check. Every server render and route handler validates the session in Redis itself (ISC-38).
+**Sign-out** (`POST /api/auth/signout`). Revoke the refresh token at `https://auth.ravelry.com/oauth2/revoke` (RFC 7009, listed in Ravelry's discovery document), clear `__Host-sid` and `__Host-pdf`, and redirect to `/`. A copied cookie can no longer refresh, so replaying it gets 401 (ISC-65). **[verify]** at the first real sign-in whether revoking the refresh token also revokes the live access token. If it doesn't, a copied cookie could still read data for up to the access token's remaining life (≤ 1 h).
+
+**Gate.** `proxy.ts` (Next 16's replacement for middleware, Node.js runtime) redirects requests for `/me/*` and `/community/*` without a session cookie to `/api/auth/signin?returnTo=…` with a 307 (ISC-39). This is only an optimistic check. Every server render and route handler unseals and validates the session itself (ISC-38).
 
 ## Caching
 
@@ -89,19 +92,19 @@ OAuth 2.1 with PKCE against `auth.ravelry.com` (verified in the docs).
 | Data | Where cached | TTL | Notes |
 |---|---|---|---|
 | Public search and detail (`/api/patterns*`, `/api/yarns*`) | Vercel CDN via `Cache-Control: public, s-maxage=300, stale-while-revalidate=60` | ≤ 300 s | ISC-78. The URL is the cache key, so search state lives in the URL (ISC-27). |
-| The same reads inside server renders | Redis `rc:<hash(path+params)>` storing `{etag, body}` | ≤ 300 s | On a miss, send `If-None-Match`; a 304 refreshes the TTL without re-downloading (Ravelry supports ETags). |
-| Reference lists (yarn weights, pattern categories and attributes, fiber attributes, color families) | Redis | **24 h** (see Decision D3) | Ravelry's docs recommend caching these for up to 24 h. |
+| The same reads inside server renders | `'use cache'` with a ≤ 300 s `cacheLife`, plus `If-None-Match` | ≤ 300 s | Per instance only on serverless, per the Next 16 docs, so this is a best effort. The CDN layer is what protects Ravelry's limits. |
+| Reference lists (yarn weights, pattern categories and attributes, fiber attributes, color families) | Vercel CDN on `/api/ref/*` (`s-maxage=86400`), plus `'use cache'` with a 24 h `cacheLife` | **24 h** (see Decision D3) | Ravelry's docs recommend caching these for up to 24 h. |
 | Anything for a signed-in user (`/me/*`, `/api/me/*`, community, library) | **Never** in a shared cache | — | `Cache-Control: private, no-store` (ISC-71). Per-request memoization only. |
-| Unread-message count | Redis `unread:<userId>` | 60 s | Caps the upstream polling at ≤ 1 call per minute per user, however many tabs are open (ISC-75). |
+| Unread-message count | Browser `localStorage` (count + timestamp, not a secret) | 60 s | Shared across tabs, so the browser asks at most once a minute however many tabs are open (ISC-75). Counts also arrive free via `extras=1` on calls the user already makes. |
 
-There is no other storage. ISC-64's test lists the Redis key prefixes after a smoke run and fails on anything outside `session:`, `oauth:`, `refresh:`, `rc:`, `ref:` and `unread:`.
+There is no other storage. ISC-64 checks that no database or key-value client is installed, and that the only server-set cookies are `__Host-sid`, `__Host-oauth` and `__Host-pdf`.
 
 ## Vercel runtime
 
-- **Runtime.** Node.js everywhere: pages, route handlers and `proxy.ts`. The gateway needs `Buffer`, Node crypto and the Upstash client, and nothing benefits from the Edge runtime. Fluid compute is on by default. Route handlers set `maxDuration = 15`, since Ravelry gives up at 10 s.
+- **Runtime.** Node.js everywhere: pages, route handlers and `proxy.ts`. The gateway needs `Buffer` and Node crypto, and nothing benefits from the Edge runtime. Fluid compute is on by default. Route handlers set `maxDuration = 15`, since Ravelry gives up at 10 s.
 - **Region.** `iad1` (the default) **[verify]**, to be checked against the latency to `api.ravelry.com` from the live probe.
 - **Environments.** Production deploys from `main` to `niddy.vercel.app`. Every pull request gets a preview behind Vercel Deployment Protection (ISC-68, ISC-77). OAuth works on production and on one stable preview alias, the URL of the fixed `preview` branch, because Ravelry needs exact redirect URIs (Q10).
-- **Configuration.** Every key in `.env.example` is set in both the Production and Preview environments (ISC-70). Upstash comes from the Vercel Marketplace integration, which injects `KV_REST_API_URL` and `KV_REST_API_TOKEN`. `NEXT_PUBLIC_SITE_NAME` is the only public variable.
+- **Configuration.** Every key in `.env.example` is set in both the Production and Preview environments (ISC-70). `SESSION_SECRET` must differ between Production and Preview, so a preview cookie can't be replayed in production. `NEXT_PUBLIC_SITE_NAME` is the only public variable. No database integration is needed.
 - **Headers.** `X-Robots-Tag: noindex, nofollow` on every path, and `robots.txt` disallows everything (ISC-8, built).
 - **CI gates.** GitHub Actions run `typecheck`, `lint`, `test`, and `test:e2e` on all four projects, with Lighthouse CI on the four key routes (ISC-54). A preview deploy happens only after these pass.
 
@@ -131,7 +134,7 @@ Signed-in only: `/community`, with the tabs Forums, Messages and Activity.
 - **Forums.** `forums/sets` gives the user's forums, `forums/topics` lists the topics in one, and `topics/posts` shows a thread. Replies go through `topics/reply` (scope `forum-write`). A reply appears only after Ravelry's 2xx, and a failure keeps the typed text and shows "Reply not posted" (ISC-41, ISC-42).
 - **Messages.** `messages/list` for the inbox, `messages/show` for a message (then `mark_read`), and `messages/reply` or `messages/create` to send (scope `message-write`). The same confirm-after-2xx and keep-text-on-failure rules apply (ISC-43, ISC-42).
 - **Activity.** `friends/activity`: the five activity types, the last 30 days, `page_size` ≤ 50, newest first (ISC-60). Each photo carries an owner credit (ISC-44). Favoriting from the feed reuses the workspace favorite write.
-- **Unread badge.** Ravelry's polling guide says to add `extras=1` to any API call. The response then carries `extras: { unread_messages_count, unread_forum_replies }`. The gateway adds `extras=1` to every signed-in call and writes the counts to Redis `unread:<userId>`, so the badge usually updates for free. The header also polls `/api/me/unread` every 60 s while the tab is visible. That route answers from Redis and only calls Ravelry (a cheap `extras=1` request) when the cached count is older than 60 s, so upstream sees at most one extra call per minute per user (ISC-75). We never poll `forum_posts/unread`, which the docs single out as called too often.
+- **Unread badge.** Ravelry's polling guide says to add `extras=1` to any API call. The response then carries `extras: { unread_messages_count, unread_forum_replies }`. The gateway adds `extras=1` to every signed-in call and returns the counts with the data, so the badge usually updates for free. When the tab is visible and the last count in `localStorage` is older than 60 s, the header calls `/api/me/unread` (one cheap `extras=1` request to Ravelry) and writes the new count back. `localStorage` is shared across tabs, so the browser asks at most once a minute however many tabs are open (ISC-75). We never poll `forum_posts/unread`, which the docs single out as called too often.
 
 ## Purchasing
 
@@ -145,11 +148,11 @@ The Ravelry docs show that `carts/*` and `external_checkout` serve **seller stor
 
 | # | Decision | Recommendation | Why |
 |---|---|---|---|
-| D1 | Shared cache and session store | **Upstash Redis** via the Vercel Marketplace | Serverless `use cache` doesn't persist across requests, and sessions need shared storage. `use cache: remote` is the alternative, if Vercel provides the handler. |
+| D1 | Session and cache storage | **No server-side store** (revised 2026-11-05): sessions in an encrypted HttpOnly cookie; caching by Vercel's CDN; the unread throttle in `localStorage` | The principal preferred no database to set up. Sign-out revokes the token at Ravelry's revocation endpoint. Redis can be added later if refresh races or rate limits need it. |
 | D2 | Client data layer for discovery and workspace writes | **TanStack Query v5** | Its in-session cache and request deduplication meet ISC-30 and ISC-31 without hand-rolled code. It's one dependency. |
 | D3 | Reference-list cache TTL | **24 h (ISC-64 amended)** | ISC-64 caps every cached Ravelry response at 300 s, but Ravelry's own docs recommend 24 h for attribute and category lists. The amendment would let `ref:*` keys live 24 h and keep 300 s for everything else. |
 | D4 | Response validation | **zod** at the gateway boundary | A shape change in Ravelry's API then fails in one place with a clear error. |
-| D5 | Session token storage | **AES-256-GCM-encrypted tokens** in Redis, with only a session id in the cookie | If the Redis credentials leaked, the tokens would still be unreadable. |
+| D5 | Session token storage | **AES-256-GCM-sealed cookie** (`__Host-sid`, HttpOnly, Secure, SameSite=Lax, 14 days), with the key derived from `SESSION_SECRET` (revised 2026-11-05) | Tokens are never readable by page scripts, and they're useless without the server secret. |
 | D6 | PDF scope | **A separate, on-demand `library-pdf` token** | Follows Ravelry's own advice, so the main token doesn't expire early. |
 
 ## Open items
