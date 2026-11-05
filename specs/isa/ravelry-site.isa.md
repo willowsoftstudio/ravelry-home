@@ -6,7 +6,7 @@ status: aligned
 principal: "The requester (project owner at /home/jhollenbeck/ravelry), who also leads the small invited private-beta group"
 created: 2026-11-01
 updated: 2026-11-04
-progress: 13/75
+progress: 16/75
 ---
 
 ## Ideal State
@@ -141,7 +141,7 @@ Why: A documented design system generated with ui-ux-pro-max (tokens, type, colo
 Why: A server-only Ravelry API layer with OAuth 2.0 sign-in, token storage/refresh, rate-limit handling, caching and attribution lets public browse and personal features work safely within Ravelry's terms.
 Reach: Header → Sign in with Ravelry button; /api/* route handlers (server only)
 
-- [ ] ISC-16: specs/ravelry-api-verification.md has one row per capability (patterns-search, patterns-show, pattern-categories, pattern-attributes, yarns-search, yarns-show, current-user, projects-read, projects-write, stash-read, stash-write, queue-read, queue-write, favorites-read, favorites-write, library-read, photos-upload, messages-read, messages-send, forums-read, forums-post, friends-activity, carts, checkout, deliveries, oauth2-scopes, rate-limit), each with status confirmed or unconfirmed, a check date (YYYY-MM-DD) and evidence (a docs URL under https://www.ravelry.com/api or a recorded HTTP status from a live call); 0 rows lack a date or evidence
+- [x] ISC-16: specs/ravelry-api-verification.md has one row per capability (patterns-search, patterns-show, pattern-categories, pattern-attributes, yarns-search, yarns-show, current-user, projects-read, projects-write, stash-read, stash-write, queue-read, queue-write, favorites-read, favorites-write, library-read, photos-upload, messages-read, messages-send, forums-read, forums-post, friends-activity, carts, checkout, deliveries, oauth2-scopes, rate-limit), each with status confirmed or unconfirmed, a check date (YYYY-MM-DD) and evidence (a docs URL under https://www.ravelry.com/api or a recorded HTTP status from a live call); 0 rows lack a date or evidence
 - [ ] ISC-17: GET /api/auth/signin answers with a 302 or 307 redirect to https://auth.ravelry.com/oauth2/auth carrying a non-empty state, a code_challenge and code_challenge_method=S256 (after: ISC-16, ISC-1)
 - [ ] ISC-18: The OAuth callback for a Ravelry username not on the server-side allowlist responds 403 with 0 session cookies set and 0 tokens stored server-side (after: ISC-17)
 - [ ] ~~ISC-19: Anti: the Ravelry client secret, read-only API key, or any OAuth access/refresh token appears in a client JS bundle, localStorage, sessionStorage, or a non-httpOnly cookie (after: ISC-17)~~ (retired 2026-11-01: merged into ISC-3)
@@ -154,8 +154,8 @@ Reach: Header → Sign in with Ravelry button; /api/* route handlers (server onl
 - [ ] ISC-71: Every response for /me/* and /api/me/* carries a Cache-Control value containing private or no-store (after: ISC-17)
 - [ ] ISC-78: Every public /api/patterns* and /api/yarns* response carries a Cache-Control s-maxage from 1 to 300 (after: ISC-17)
 - [x] ISC-72: A client component that imports the Ravelry API client module fails the production build (after: ISC-1)
-- [ ] ISC-73: specs/architecture.md has one section for each of 9 topics: Design system, API gateway, Sessions, Caching, Vercel runtime, Discovery, Workspace, Community, Purchasing (after: ISC-16)
-- [ ] ISC-74: The ISA Decisions section holds a dated entry 'Architecture approved' written by the principal after review of specs/architecture.md (after: ISC-73)
+- [x] ISC-73: specs/architecture.md has one section for each of 9 topics: Design system, API gateway, Sessions, Caching, Vercel runtime, Discovery, Workspace, Community, Purchasing (after: ISC-16)
+- [x] ISC-74: The ISA Decisions section holds a dated entry 'Architecture approved' written by the principal after review of specs/architecture.md (after: ISC-73)
 
 ### F3 · PatternYarnDiscovery
 Why: Photo-forward faceted search with clear pattern and yarn detail pages and yarn substitution/matching is the main reason users would pick this site over ravelry.com.
@@ -379,6 +379,9 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 - 2026-11-04 · ISC-15 · pass · Decisions line '2026-11-05 · Design system approved' (principal: "approved"); review device not stated
 - 2026-11-04 · ISC-15 · fail · principal approved after reviewing /design-system on desktop ("i use the desktop"); the criterion requires a phone review, so it is not met as written
 - 2026-11-04 · ISC-15 · pass · Decisions '2026-11-05 · Design system approved' by the principal after a desktop review, accepted by the amended criterion (Decision 2026-11-05)
+- 2026-11-04 · ISC-16 · pass · node scripts/check-api-verification.mjs specs/ravelry-api-verification.md → 27 of 27 rows valid (mutation with a bad status, bad date and missing row fails it); from the full docs pasted 2026-11-05
+- 2026-11-04 · ISC-73 · pass · 9/9 section headings in specs/architecture.md; document-answerable [verify] items closed by the full docs; 5 live-probe items tracked under Open items
+- 2026-11-04 · ISC-74 · pass · Decisions '2026-11-05 · Architecture approved' by the principal with D1-D6
 
 
 ## Articulation Log
@@ -469,3 +472,7 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 ### 2026-11-05 11:45 · discuss — architecture and two amendments
 > Architecture: "Approve all six". ISC-64 cache TTL: "Amend: 24 h for lists". ISC-15: "Desktop + mobile tests is fine"
 **Settled:** architecture approved (Decisions); ISC-73 and ISC-74 stay unchecked until ISC-16 closes the [verify] items. ISC-64 and ISC-15 reworded as above, both logged as direction changes. Ladder unchanged.
+
+### 2026-11-05 14:00 · verify — full API docs and local env
+> "can you add the creds for me for local setup and here are the docs" (full Ravelry API documentation, 2026-10-26)
+**Settled:** no credential values were supplied, so .env.local (gitignored, mode 600) was created from .env.example with a generated SESSION_SECRET and APP_URL=http://localhost:3000; the Ravelry fields stay blank for the principal to fill in. The full docs confirm read-only basic auth reaches pattern and yarn search and detail (public browse works without sign-in), unread counts via extras=1, ETags, the documented buy URL (permalink?buy=1), and 100 PDF links per user per day; no general rate limit is published. specs/ravelry-api-verification.md rewritten (24 confirmed, 3 unconfirmed); scripts/check-api-verification.mjs added. ISC-16, ISC-73 and ISC-74 pass. Five live-probe items remain in specs/architecture.md. Ladder unchanged: the public-browse fallback is not needed.

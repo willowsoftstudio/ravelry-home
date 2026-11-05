@@ -1,6 +1,6 @@
 # Architecture: Niddy v1 (private beta)
 
-Status: **approved by the principal 2026-11-05** (ISA ISC-74), with all six decisions. The [verify] items close with the API verification (ISC-16).
+Status: **approved by the principal 2026-11-05** (ISA ISC-74), with all six decisions. The full API docs (2026-11-05) closed the document-answerable items; the rest close with one live probe (see Open items).
 
 This document covers all four v1 areas end to end before any feature is built. It follows the ISA (`specs/isa/ravelry-site.isa.md`), the API facts in `specs/ravelry-api-verification.md`, and the docs that ship with Next.js 16.4.5 (`node_modules/next/dist/docs/`). Points that still depend on unverified API facts are marked **[verify]**. The decisions that need your sign-off are collected in [Decisions](#decisions-approved-2026-11-05).
 
@@ -57,7 +57,7 @@ Built and tested. The source of truth is `design-system/ravelry-companion-site/M
 | `cache.ts` | Shared response cache in Redis (see Caching). |
 | `route-errors.ts` | Maps gateway failures to our API's responses: 429 → 503 with `Retry-After` 1–120 s (ISC-21, exists today), 503/504 → 503, timeout → 504, 401 → refresh once then 401, anything else → 502. |
 
-**Rate-limit behavior.** User-facing reads do not retry automatically after a 429: they fail fast with 503 + `Retry-After`, and the page shows a retry message. Background polling (the unread badge) backs off exponentially from 60 s to 15 min. Writes are never retried automatically, because a duplicate POST to Ravelry could double-apply.
+**Rate-limit behavior.** Ravelry publishes no general limit (only 100/day for PDF links, and a limit on forum votes), so the design assumes a tight one. User-facing reads do not retry automatically after a 429: they fail fast with 503 + `Retry-After`, and the page shows a retry message. Background polling (the unread badge) backs off exponentially from 60 s to 15 min. Writes are never retried automatically, because a duplicate POST to Ravelry could double-apply.
 
 **Mutations and CSRF.** Every write is a `POST` / `PUT` / `DELETE` route handler under `/api/me/*`. Each one checks the session, the beta allowlist, and that the `Origin` header matches `APP_URL`. Together with the `SameSite=Lax` cookie, the Origin check stops cross-site requests.
 
@@ -107,12 +107,12 @@ There is no other storage. ISC-64's test lists the Redis key prefixes after a sm
 
 ## Discovery
 
-Public, with no sign-in: `/`, `/patterns`, `/patterns/[id]`, `/yarns`, `/yarns/[id]`. **[verify]** that read-only basic auth can call `patterns/search`, `patterns/show`, `yarns/search` and `yarns/show`. If it can't, these pages require sign-in and the landing page stays public (agreed fallback, which rewords L2.b1).
+Public, with no sign-in: `/`, `/patterns`, `/patterns/[id]`, `/yarns`, `/yarns/[id]`. Confirmed by the full docs (2026-11-05): `patterns/search`, `patterns/show`, `yarns/search` and `yarns/show` are not marked "authenticated", so read-only basic auth reaches them and the sign-in fallback is not needed.
 
 - **Search page.** A Server Component renders the first page of results from `searchParams`, so a shared link renders fully on first load. The filter sheet is a Client Component. Changing a chip updates the URL with `history.replaceState` and fetches `/api/patterns?…` through **TanStack Query**, which keeps an in-session cache keyed by the query string. A repeated filter state therefore renders from memory with no new `/api/*` request (ISC-31, ≤ 200 ms), and a new one renders within 500 ms of the response arriving (ISC-30).
-- **Facets.** Chips map to `patterns/search` parameters (craft, category, weight, yardage, needle size, free/paid, difficulty, attributes, designer). Their option lists come from the cached reference lists. **[verify]** the exact parameter names in the patterns section of the docs.
+- **Facets.** Chips map to `patterns/search` parameters (craft, category, weight, yardage, needle size, free/paid, difficulty, attributes, designer). Their option lists come from the cached reference lists. The docs say the API accepts "any of the (many) parameters for filters that are available in the on-site pattern search" without listing them. **[live probe]** records the exact names.
 - **Pattern detail.** `patterns/show`, giving designer, weight, gauge, yardage, sizes, needle or hook, suggested yarns, difficulty, price or "Free", and a link to the pattern on ravelry.com (ISC-28). For a paid pattern, it also shows the Buy on Ravelry link (see Purchasing).
-- **Yarn substitutes.** A server function takes the original yarn (`yarns/show`), runs `yarns/search` filtered by the same weight and a matching fiber family, then ranks results by gauge distance. Each result carries a plain-language reason naming both yarns' weight, fiber content and gauge (ISC-29). **[verify]** the yarn search filter parameters.
+- **Yarn substitutes.** A server function takes the original yarn (`yarns/show`), runs `yarns/search` filtered by the same weight and a matching fiber family, then ranks results by gauge distance. Each result carries a plain-language reason naming both yarns' weight, fiber content and gauge (ISC-29). `Yarn (full)` gives `yarn_weight`, `yarn_fibers` (category, type, percentage) and `min_gauge`/`max_gauge` per `gauge_divisor`, which is everything the match reason needs. **[live probe]** confirms the yarn search filter names.
 - **Photos.** `next/image` with fixed aspect ratios. The first row is `priority` so LCP stays ≤ 2.5 s on mobile (ISC-54). Owner credit comes from the photo's user (ISC-25).
 
 ## Workspace
@@ -131,15 +131,15 @@ Signed-in only: `/community`, with the tabs Forums, Messages and Activity.
 - **Forums.** `forums/sets` gives the user's forums, `forums/topics` lists the topics in one, and `topics/posts` shows a thread. Replies go through `topics/reply` (scope `forum-write`). A reply appears only after Ravelry's 2xx, and a failure keeps the typed text and shows "Reply not posted" (ISC-41, ISC-42).
 - **Messages.** `messages/list` for the inbox, `messages/show` for a message (then `mark_read`), and `messages/reply` or `messages/create` to send (scope `message-write`). The same confirm-after-2xx and keep-text-on-failure rules apply (ISC-43, ISC-42).
 - **Activity.** `friends/activity`: the five activity types, the last 30 days, `page_size` ≤ 50, newest first (ISC-60). Each photo carries an owner credit (ISC-44). Favoriting from the feed reuses the workspace favorite write.
-- **Unread badge.** The header polls `/api/me/unread` every 60 s, and only while the tab is visible (Page Visibility API). The route answers from the Redis count (60 s TTL), so the upstream sees at most one call per minute per user (ISC-75). **[verify]** that this matches Ravelry's "Polling for unread messages" guide. The docs single out `forum_posts/unread` as called too often, so we never poll it.
+- **Unread badge.** Ravelry's polling guide says to add `extras=1` to any API call. The response then carries `extras: { unread_messages_count, unread_forum_replies }`. The gateway adds `extras=1` to every signed-in call and writes the counts to Redis `unread:<userId>`, so the badge usually updates for free. The header also polls `/api/me/unread` every 60 s while the tab is visible. That route answers from Redis and only calls Ravelry (a cheap `extras=1` request) when the cached count is older than 60 s, so upstream sees at most one extra call per minute per user (ISC-75). We never poll `forum_posts/unread`, which the docs single out as called too often.
 
 ## Purchasing
 
 The Ravelry docs show that `carts/*` and `external_checkout` serve **seller stores** only, so purchasing is a hand-off to ravelry.com (Q1, ISC-47 to ISC-81).
 
-- **Buy on Ravelry.** On a paid pattern, the page shows the price and currency exactly as `patterns/show` returns them (ISC-81). A link opens the pattern's own page on `www.ravelry.com` (ISC-79). There are no affiliate or `utm_` parameters (ISC-80), no card fields, and no payment SDK (ISC-7).
+- **Buy on Ravelry.** On a paid pattern, the page shows the price and currency exactly as `patterns/show` returns them (ISC-81). The link is the URL the docs document: `https://www.ravelry.com/patterns/library/{permalink}?buy=1`, which opens the pattern page with its buy box open, plus `guest_buy=0` for signed-in users so Ravelry asks them to log in (ISC-79). There are no affiliate or `utm_` parameters (ISC-80), no card fields, and no payment SDK (ISC-7).
 - **Library.** `/me/library` merges `library/search` (the user's volumes) with `deliveries/list` (purchases and gifts, scope `deliveries-read`). After returning from ravelry.com, a "Refresh library" action reloads the page. The purchase shows up on the next load (ISC-51).
-- **Download.** `GET /api/me/library/[id]/download` checks that the session user owns the volume (401 without a session, 403 for another user's), gets the PDF-scoped token (starting the `library-pdf` consent the first time), calls `product_attachments/generate_download_link`, and returns a 302 to that expiring link. The PDF never passes through our servers.
+- **Download.** `GET /api/me/library/[id]/download` checks that the session user owns the volume (401 without a session, 403 for another user's), gets the PDF-scoped token (starting the `library-pdf` consent the first time), calls `product_attachments/generate_download_link` with the `product_attachment_id` from the volume's attachments, and returns a 302 to that expiring link. The PDF never passes through our servers. Ravelry allows 100 link requests per user per day, so a 429 from that endpoint shows "Daily download limit reached, try again tomorrow".
 
 ## Decisions (approved 2026-11-05)
 
@@ -152,13 +152,14 @@ The Ravelry docs show that `carts/*` and `external_checkout` serve **seller stor
 | D5 | Session token storage | **AES-256-GCM-encrypted tokens** in Redis, with only a session id in the cookie | If the Redis credentials leaked, the tokens would still be unreadable. |
 | D6 | PDF scope | **A separate, on-demand `library-pdf` token** | Follows Ravelry's own advice, so the main token doesn't expire early. |
 
-## Open items [verify]
+## Open items
 
-1. Can read-only basic auth call pattern and yarn search and detail? (Decides the public-browse fallback.)
-2. The exact `patterns/search` and `yarns/search` filter parameter names.
-3. The per-method rate limits, and whether Ravelry rotates refresh tokens.
-4. The "Polling for unread messages" and ETags guides.
-5. The image and delivery hosts in live responses (needed for `remotePatterns` and the egress allowlist).
-6. Latency from `iad1` to `api.ravelry.com`.
+Closed by the full docs (2026-11-05): read-only basic auth reaches pattern and yarn search and detail; unread counts come from `extras=1`; ETags work with `If-None-Match`; the Buy link URL is documented; PDF links allow 100 per user per day; Ravelry publishes no general rate limit, which the design already handles.
 
-All six close with the rest of the docs plus one live probe using the read-only key.
+Still open, all closed by **one live probe** with the read-only key in `.env.local`:
+
+1. The filter parameter names for `patterns/search` and `yarns/search`.
+2. The image hosts in `Photo` URLs and the host of PDF download links (needed for `next/image` `remotePatterns` and the egress allowlist).
+3. Whether `copyright_holder` is filled on pattern photos (photo credit).
+4. Whether Ravelry rotates refresh tokens (seen at the first real sign-in, which needs the OAuth 2.1 app).
+5. Latency from `iad1` to `api.ravelry.com` (measured after the first deploy).
