@@ -52,3 +52,6 @@ next-env.d.ts
 # editor
 /.idea/
 /.next-guard/
+
+# local HTTPS certificates from next dev --experimental-https
+/certificates/
