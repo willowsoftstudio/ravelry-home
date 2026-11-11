@@ -27,6 +27,17 @@ export default defineConfig({
     ? undefined
     : {
         command: `pnpm build && pnpm start --port ${PORT}`,
+        // Throwaway values: e2e never uses real Ravelry credentials or .env.local
+        // (process env takes precedence over .env files in Next.js).
+        env: {
+          APP_URL: BASE_URL,
+          RAVELRY_CLIENT_ID: "e2e-client-id",
+          RAVELRY_CLIENT_SECRET: "e2e-client-secret",
+          RAVELRY_READONLY_USERNAME: "e2e-readonly",
+          RAVELRY_READONLY_PASSWORD: "e2e-readonly-pass",
+          SESSION_SECRET: "e2e-session-secret-0123456789abcdef0123456789",
+          BETA_ALLOWLIST: "e2e-user",
+        },
         url: BASE_URL,
         reuseExistingServer: !process.env.CI,
         timeout: 240_000,

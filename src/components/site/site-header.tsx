@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import { SessionNav } from "./session-nav";
 import { siteConfig } from "@/config/site";
 
 export function SiteHeader() {
@@ -11,6 +13,10 @@ export function SiteHeader() {
         >
           {siteConfig.name}
         </Link>
+        {/* Same-size placeholder so the header doesn't shift while the session streams in */}
+        <Suspense fallback={<div className="min-h-11 w-40" aria-hidden="true" />}>
+          <SessionNav />
+        </Suspense>
       </div>
     </header>
   );

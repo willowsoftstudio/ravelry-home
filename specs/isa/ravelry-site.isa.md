@@ -5,8 +5,8 @@ slug: ravelry-companion-site
 status: aligned
 principal: "The requester (project owner at /home/jhollenbeck/ravelry), who also leads the small invited private-beta group"
 created: 2026-11-01
-updated: 2026-11-05
-progress: 16/75
+updated: 2026-11-11
+progress: 21/75
 ---
 
 ## Ideal State
@@ -142,14 +142,14 @@ Why: A server-only Ravelry API layer with OAuth 2.0 sign-in, token storage/refre
 Reach: Header → Sign in with Ravelry button; /api/* route handlers (server only)
 
 - [x] ISC-16: specs/ravelry-api-verification.md has one row per capability (patterns-search, patterns-show, pattern-categories, pattern-attributes, yarns-search, yarns-show, current-user, projects-read, projects-write, stash-read, stash-write, queue-read, queue-write, favorites-read, favorites-write, library-read, photos-upload, messages-read, messages-send, forums-read, forums-post, friends-activity, carts, checkout, deliveries, oauth2-scopes, rate-limit), each with status confirmed or unconfirmed, a check date (YYYY-MM-DD) and evidence (a docs URL under https://www.ravelry.com/api or a recorded HTTP status from a live call); 0 rows lack a date or evidence
-- [ ] ISC-17: GET /api/auth/signin answers with a 302 or 307 redirect to https://auth.ravelry.com/oauth2/auth carrying a non-empty state, a code_challenge and code_challenge_method=S256 (after: ISC-16, ISC-1)
-- [ ] ISC-18: The OAuth callback for a Ravelry username not on the server-side allowlist responds 403 with 0 session cookies set and 0 tokens stored server-side (after: ISC-17)
+- [x] ISC-17: GET /api/auth/signin answers with a 302 or 307 redirect to https://auth.ravelry.com/oauth2/auth carrying a non-empty state, a code_challenge and code_challenge_method=S256 (after: ISC-16, ISC-1)
+- [x] ISC-18: The OAuth callback for a Ravelry username not on the server-side allowlist responds 403 with 0 session cookies set and 0 tokens stored server-side (after: ISC-17)
 - [ ] ~~ISC-19: Anti: the Ravelry client secret, read-only API key, or any OAuth access/refresh token appears in a client JS bundle, localStorage, sessionStorage, or a non-httpOnly cookie (after: ISC-17)~~ (retired 2026-11-01: merged into ISC-3)
-- [ ] ISC-20: A /api/me/* request made with an expired access token and a valid refresh token gets 200 after a server-side token exchange, with 0 redirects to www.ravelry.com (after: ISC-17)
+- [x] ISC-20: A /api/me/* request made with an expired access token and a valid refresh token gets 200 after a server-side token exchange, with 0 redirects to www.ravelry.com (after: ISC-17)
 - [x] ISC-21: When Ravelry answers an upstream request with HTTP 429, the site's API route returns 503 with an integer Retry-After header from 1 to 120 (after: ISC-1)
 - [ ] ~~ISC-22: Anti: the server sends any data request to a host other than api.ravelry.com (no fetching of ravelry.com HTML pages; OAuth endpoints on www.ravelry.com/oauth2/ are the only exception) (after: ISC-1)~~ (retired 2026-11-01: duplicate of ISC-4, conflicted with photo and delivery hosts)
-- [ ] ISC-65: After POST /api/auth/signout, a replay of the old session cookie on /api/me/projects gets 401 (probe: the sign-out response clears __Host-sid and calls Ravelry's revocation endpoint once with the session's refresh token) (after: ISC-17)
-- [ ] ISC-84: With RAVELRY_REDIRECT_URI=https://example.test/cb, the sign-in redirect and the token exchange both send redirect_uri=https://example.test/cb exactly (probe: with it unset, both send <APP_URL>/api/auth/callback) (after: ISC-17)
+- [x] ISC-65: After POST /api/auth/signout, a replay of the old session cookie on /api/me/projects gets 401 (probe: the sign-out response clears __Host-sid and calls Ravelry's revocation endpoint once with the session's refresh token) (after: ISC-17)
+- [x] ISC-84: With RAVELRY_REDIRECT_URI=https://example.test/cb, the sign-in redirect and the token exchange both send redirect_uri=https://example.test/cb exactly (probe: with it unset, both send <APP_URL>/api/auth/callback) (after: ISC-17)
 - [ ] ISC-69: A live Ravelry OAuth sign-in started on PROD_URL returns to PROD_URL/me with HTTP 200 for the principal (after: ISC-17, ISC-67)
 - [ ] ISC-71: Every response for /me/* and /api/me/* carries a Cache-Control value containing private or no-store (after: ISC-17)
 - [ ] ISC-78: Every public /api/patterns* and /api/yarns* response carries a Cache-Control s-maxage from 1 to 300 (after: ISC-17)
@@ -383,6 +383,11 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 - 2026-11-04 · ISC-16 · pass · node scripts/check-api-verification.mjs specs/ravelry-api-verification.md → 27 of 27 rows valid (mutation with a bad status, bad date and missing row fails it); from the full docs pasted 2026-11-05
 - 2026-11-04 · ISC-73 · pass · 9/9 section headings in specs/architecture.md; document-answerable [verify] items closed by the full docs; 5 live-probe items tracked under Open items
 - 2026-11-04 · ISC-74 · pass · Decisions '2026-11-05 · Architecture approved' by the principal with D1-D6
+- 2026-11-11 · ISC-17 · pass · pnpm test:e2e tests/e2e/auth/signin-redirect.spec.ts --project=desktop → pass: 307 to https://auth.ravelry.com/oauth2/auth with 43-char state, code_challenge, S256, offline_access
+- 2026-11-11 · ISC-18 · pass · pnpm test tests/gateway/allowlist.test.ts → 4/4: non-allowlisted callback 403, 0 __Host-sid cookies, tokens revoked at Ravelry (mutation allowing everyone fails it)
+- 2026-11-11 · ISC-20 · pass · pnpm test tests/gateway/token-refresh.test.ts → 5/5: expired token refreshed server-side, 200, resealed cookie, 0 requests to www.ravelry.com (mutation disabling refresh fails 2 tests)
+- 2026-11-11 · ISC-65 · pass · pnpm test tests/gateway/signout.test.ts → 2/2: sign-out clears __Host-sid, 1 revoke call with the refresh token, replayed cookie 401 (mutation skipping revoke fails it)
+- 2026-11-11 · ISC-84 · pass · pnpm test tests/gateway/redirect-uri.test.ts → 2/2: redirect_uri equals RAVELRY_REDIRECT_URI when set, APP_URL + /api/auth/callback when unset, on authorize and token exchange (mutation ignoring the env var fails it)
 
 
 ## Articulation Log
@@ -481,3 +486,7 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 ### 2026-11-05 16:00 · discuss — sessions without a database
 > "can we do somethign like localstorage" → after options: "Encrypted cookie"
 **Settled:** tokens stay out of localStorage (ISC-3); sessions are sealed into an encrypted HttpOnly cookie, with no Redis or Upstash. Correction given to the principal: the refresh token sits in the cookie too, so a copied cookie is only stopped by revocation. Ravelry's discovery document lists a revocation endpoint, so sign-out revokes the token. Cookie max age is 14 days. ISC-64 and ISC-65 reworded; architecture D1 and D5 revised. Ladder unchanged.
+
+### 2026-11-11 10:00 · verify — sign-in flow built
+> "yes, build the sign-in flow"
+**Settled:** built AES-256-GCM cookie sealing (HKDF from SESSION_SECRET, per-purpose keys), OAuth 2.1 + PKCE sign-in and callback, beta allowlist, refresh (early and on 401, rotation stored), sign-out with RFC 7009 revocation and an Origin check, /api/me/projects, and the header sign-in / sign-out control inside Suspense. ISC-17, ISC-18, ISC-20, ISC-65 and ISC-84 pass, each with a mutation check. A self-review found and fixed a bug: a refresh followed by an upstream error dropped the resealed cookie. ISC-3 browser e2e stays pending until a real sign-in runs. Ladder unchanged.
