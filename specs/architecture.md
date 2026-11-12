@@ -119,7 +119,7 @@ Public, with no sign-in: `/`, `/patterns`, `/patterns/[id]`, `/yarns`, `/yarns/[
 - **Whitelisted parameters only.** A malformed filter value makes Ravelry answer 500, so `/api/patterns` and `/api/yarns` accept only known parameter names, with values checked against the reference lists (zod at the boundary, decision D4). Only the free-text `query` passes through as typed.
 - **Pattern detail.** `patterns/show`, giving designer, weight, gauge, yardage, sizes, needle or hook, suggested yarns, difficulty, price or "Free", and a link to the pattern on ravelry.com (ISC-28). For a paid pattern, it also shows the Buy on Ravelry link (see Purchasing).
 - **Yarn substitutes.** A server function takes the original yarn (`yarns/show`), runs `yarns/search` filtered by the same weight and a matching fiber family, then ranks results by gauge distance. Each result carries a plain-language reason naming both yarns' weight, fiber content and gauge (ISC-29). `Yarn (full)` gives `yarn_weight`, `yarn_fibers` (category, type, percentage) and `min_gauge`/`max_gauge` per `gauge_divisor`, which is everything the match reason needs. Yarn search filters (live probe): `weight` and `fiberc` (fiber category id; a name gives 500) narrow the candidates, and `discontinued=no` drops discontinued yarns.
-- **Photos.** `next/image` with fixed aspect ratios, and `remotePatterns` limited to `images4-*.ravelrycache.com` and `avatars-*.ravelrycache.com` (the hosts seen in the live probe). The first row is `priority` so LCP stays ≤ 2.5 s on mobile (ISC-54). Owner credit: a photo whose `user_id` matches one of the designer's accounts (`pattern_author.users`) is credited to that username (151 of 173 photos in the probe), and `copyright_holder` is used when set. Turning any other `user_id` into a username needs the authenticated `people/show`, which the read-only key can't call. **Decision pending** on how to credit those photos for visitors who are not signed in (ISC-25).
+- **Photos.** `next/image` with fixed aspect ratios, and `remotePatterns` limited to `images4-*.ravelrycache.com` and `avatars-*.ravelrycache.com` (the hosts seen in the live probe). The first row is `priority` so LCP stays ≤ 2.5 s on mobile (ISC-54). Owner credit: a photo whose `user_id` matches one of the designer's accounts (`pattern_author.users`) is credited to that username (151 of 173 photos in the probe), and `copyright_holder` is used when set. Turning any other `user_id` into a username needs the authenticated `people/show`, which the read-only key can't call. Decided 2026-11-12: public pages show only creditable photos; signed-in users see all, credited via `people/show` with their own token (cached).
 
 ## Workspace
 
@@ -167,7 +167,7 @@ Closed by the live probe (2026-11-12): search filter names (except needle/hook s
 Still open:
 
 1. The value format for the needle/hook size filter (`needles=4` returns 500).
-2. Photo credit for visitors who are not signed in, when the photo isn't the designer's (a decision for the principal).
+2. ~~Photo credit for visitors who are not signed in~~ (decided 2026-11-12: creditable photos only).
 3. Whether Ravelry rotates refresh tokens (watch the `[auth]` refresh behaviour after the first hour).
 4. The host of PDF download links (needs a library-pdf token).
 5. Latency from `iad1` to `api.ravelry.com` (after the first deploy).
