@@ -57,7 +57,8 @@ checkout_source: https://www.ravelry.com/api
 ## Live sign-in findings
 
 - 2026-11-11 · With `scope=offline_access forum-write message-write deliveries-read`, Ravelry's own login/consent page (`www.ravelry.com/auth/login?login_challenge=…`) answers **HTTP 500** for a signed-in Ravelry user. Without a Ravelry session the same page correctly redirects to `/account/login`. The app's debug log shows nothing, because the failure happens before any API call.
-- 2026-11-11 · With `scope=offline_access` alone, sign-in completes: the callback exchanges the code and the allowlisted user lands on `/me`. One of `forum-write`, `message-write` or `deliveries-read` triggers Ravelry's 500. **[live]** testing one at a time.
+- 2026-11-11 · With `scope=offline_access` alone, in a private window (no Ravelry session; the principal logged in on Ravelry's page), sign-in completes: the callback exchanges the code and the allowlisted user lands on `/me`.
+- 2026-11-11 · **Correction:** a later attempt with `scope=offline_access` alone also got the 500, so the scopes are not the cause. The pattern fits a Ravelry bug when the browser already has a Ravelry session: the 500 happened with an existing session both times, and the one success was with none. **[live]** confirming with full scopes in a fresh private window, and with the principal logged out of ravelry.com first.
 
 ## Still to verify with a live call (needs the read-only key in .env.local)
 
