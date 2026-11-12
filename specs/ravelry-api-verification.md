@@ -64,6 +64,9 @@ checkout_source: https://www.ravelry.com/api
 
 - 2026-11-12 · Also fails after the principal logged out of ravelry.com and logged in again during the flow. The workaround does not hold; OAuth 2.1 sign-in is blocked on Ravelry.
 
+- 2026-11-12 · **OAuth 2.0 works** (`RAVELRY_OAUTH_VERSION=2.0`, a separate 2.0 key, https redirect URIs). The live sign-in exchanged the code for an access token and a refresh token (87 chars each) and granted all four scopes (`offline forum-write message-write deliveries-read`). The sealed session cookie is 530 bytes. Ravelry shows its consent screen on each sign-in.
+- 2026-11-12 · **Revocation works on 2.0:** sign-out's `POST https://www.ravelry.com/oauth2/revoke` (refresh token) answered **HTTP 200**. **[verify]** whether it also invalidates the live access token (needs a replay of a pre-sign-out cookie).
+
 ## Still to verify with a live call (needs the read-only key in .env.local)
 
 1. The filter parameter names for `patterns/search` and `yarns/search` (craft, category, weight, availability/free, yardage, needle size, difficulty, attributes, designer).

@@ -495,3 +495,7 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 ### 2026-11-12 02:00 · discuss — OAuth 2.0 fallback
 > "logged out of ravelry and it didn't worked" / "can we just go to 2/0" / "i have a client id and secret set"
 **Settled:** RAVELRY_OAUTH_VERSION added (default 2.1). 2.0 mode uses www.ravelry.com, scope 'offline', and no PKCE; 3 new gateway tests (36/36 pass). .env.local set to 2.0. The client id in .env.local is still the 2.1 key, which www.ravelry.com rejects (invalid_client), so the principal needs an OAuth 2.0 key. ISC-17 reworded. Ladder unchanged.
+
+### 2026-11-12 03:00 · verify — live OAuth 2.0 sign-in and sign-out
+> "header shows wrampd now" / "[auth] token revocation (refresh_token) at https://www.ravelry.com/oauth2/revoke -> HTTP 200"
+**Settled:** a real sign-in with the OAuth 2.0 key works end to end (tokens, refresh token, all four scopes, a 530-byte sealed cookie, the header shows the user on every page). Sign-out revokes the refresh token at Ravelry (HTTP 200), which closes the 2.0 revocation risk noted for ISC-65. Whether revocation also kills the live access token is still to verify. Ladder unchanged.
