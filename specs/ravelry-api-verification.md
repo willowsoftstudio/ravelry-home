@@ -54,6 +54,11 @@ checkout_source: https://www.ravelry.com/api
 - `auth.ravelry.com`: `/oauth2/auth` and `/oauth2/token` only
 - Image and delivery hosts: **[live probe]**, recorded from real responses
 
+## Live sign-in findings
+
+- 2026-11-11 · With `scope=offline_access forum-write message-write deliveries-read`, Ravelry's own login/consent page (`www.ravelry.com/auth/login?login_challenge=…`) answers **HTTP 500** for a signed-in Ravelry user. Without a Ravelry session the same page correctly redirects to `/account/login`. The app's debug log shows nothing, because the failure happens before any API call.
+- 2026-11-11 · With `scope=offline_access` alone, sign-in completes: the callback exchanges the code and the allowlisted user lands on `/me`. One of `forum-write`, `message-write` or `deliveries-read` triggers Ravelry's 500. **[live]** testing one at a time.
+
 ## Still to verify with a live call (needs the read-only key in .env.local)
 
 1. The filter parameter names for `patterns/search` and `yarns/search` (craft, category, weight, availability/free, yardage, needle size, difficulty, attributes, designer).
