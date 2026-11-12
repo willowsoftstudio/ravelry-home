@@ -11,9 +11,11 @@ export async function SessionNav() {
   const session = readSession((await cookies()).get(SESSION_COOKIE)?.value);
   if (!session) {
     return (
-      <Link href="/api/auth/signin" prefetch={false} className={`${control} bg-cta text-cta-foreground hover:opacity-90`}>
+      // A plain <a>: this route redirects off-site to Ravelry, which a client-side
+      // <Link> navigation can't follow (it tries to fetch an RSC payload).
+      <a href="/api/auth/signin" className={`${control} bg-cta text-cta-foreground hover:opacity-90`}>
         Sign in with Ravelry
-      </Link>
+      </a>
     );
   }
   return (
