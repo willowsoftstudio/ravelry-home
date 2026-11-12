@@ -65,6 +65,8 @@ Built and tested. The source of truth is `design-system/ravelry-companion-site/M
 
 OAuth 2.1 with PKCE against `auth.ravelry.com` (verified in the docs and in Ravelry's discovery document). **No server-side session store** (decision D1, 2026-11-05): the session is sealed into an encrypted, HttpOnly cookie, so local development and the beta need no database.
 
+**OAuth 2.0 fallback (2026-11-12).** Ravelry's 2.1 login page (`www.ravelry.com/auth/login`) returns 500 (see `specs/ravelry-bug-report-oauth21-login-500.md`), so `RAVELRY_OAUTH_VERSION=2.0` switches to Ravelry's documented OAuth 2.0 on `www.ravelry.com`: same `/oauth2/auth` and `/oauth2/token` paths, the `offline` scope for refresh tokens, client credentials in the `Authorization` header, and no PKCE parameters (the 2.0 docs don't mention PKCE). Everything else below is unchanged. 2.0 documents no revocation endpoint. `www.ravelry.com/oauth2/revoke` answers 400, not 404, so sign-out still tries it. **[verify]** with a real 2.0 token. If revocation is unavailable, a copied cookie stays usable until its 14-day expiry. Switching back to 2.1 is the one setting.
+
 **Sealing.** `src/lib/session/seal.ts` encrypts JSON with AES-256-GCM using a key derived (HKDF-SHA256) from `SESSION_SECRET`, with a random 96-bit nonce per seal. Tampering fails the GCM tag check, and an unreadable cookie counts as signed out. Rotating `SESSION_SECRET` signs everyone out.
 
 **Sign-in** (`GET /api/auth/signin` → Ravelry → `GET /api/auth/callback`)

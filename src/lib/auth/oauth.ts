@@ -1,6 +1,6 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
-import { authBase, clientCredentials, redirectUri, scopes } from "./config";
+import { authBase, clientCredentials, redirectUri, scopes, usesPkce } from "./config";
 
 export type TokenSet = {
   accessToken: string;
@@ -33,15 +33,18 @@ export function createState(): string {
 
 export function authorizeUrl(state: string, challenge: string): string {
   const url = new URL(`${authBase()}/oauth2/auth`);
-  url.search = new URLSearchParams({
+  const params = new URLSearchParams({
     response_type: "code",
     client_id: clientCredentials().id,
     redirect_uri: redirectUri(),
     scope: scopes().join(" "),
     state,
-    code_challenge: challenge,
-    code_challenge_method: "S256",
-  }).toString();
+  });
+  if (usesPkce()) {
+    params.set("code_challenge", challenge);
+    params.set("code_challenge_method", "S256");
+  }
+  url.search = params.toString();
   return url.toString();
 }
 
@@ -80,7 +83,7 @@ export function exchangeCode(code: string, verifier: string): Promise<TokenSet> 
     grant_type: "authorization_code",
     code,
     redirect_uri: redirectUri(),
-    code_verifier: verifier,
+    ...(usesPkce() ? { code_verifier: verifier } : {}),
   });
 }
 

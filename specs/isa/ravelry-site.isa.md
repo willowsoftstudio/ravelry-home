@@ -142,7 +142,7 @@ Why: A server-only Ravelry API layer with OAuth 2.0 sign-in, token storage/refre
 Reach: Header → Sign in with Ravelry button; /api/* route handlers (server only)
 
 - [x] ISC-16: specs/ravelry-api-verification.md has one row per capability (patterns-search, patterns-show, pattern-categories, pattern-attributes, yarns-search, yarns-show, current-user, projects-read, projects-write, stash-read, stash-write, queue-read, queue-write, favorites-read, favorites-write, library-read, photos-upload, messages-read, messages-send, forums-read, forums-post, friends-activity, carts, checkout, deliveries, oauth2-scopes, rate-limit), each with status confirmed or unconfirmed, a check date (YYYY-MM-DD) and evidence (a docs URL under https://www.ravelry.com/api or a recorded HTTP status from a live call); 0 rows lack a date or evidence
-- [x] ISC-17: GET /api/auth/signin answers with a 302 or 307 redirect to https://auth.ravelry.com/oauth2/auth carrying a non-empty state, a code_challenge and code_challenge_method=S256 (after: ISC-16, ISC-1)
+- [x] ISC-17: GET /api/auth/signin answers with a 302 or 307 redirect to the configured Ravelry authorize URL with a non-empty state; with OAuth 2.1 (the default) that is https://auth.ravelry.com/oauth2/auth with a code_challenge and code_challenge_method=S256, and with OAuth 2.0 (fallback) https://www.ravelry.com/oauth2/auth (after: ISC-16, ISC-1)
 - [x] ISC-18: The OAuth callback for a Ravelry username not on the server-side allowlist responds 403 with 0 session cookies set and 0 tokens stored server-side (after: ISC-17)
 - [ ] ~~ISC-19: Anti: the Ravelry client secret, read-only API key, or any OAuth access/refresh token appears in a client JS bundle, localStorage, sessionStorage, or a non-httpOnly cookie (after: ISC-17)~~ (retired 2026-11-01: merged into ISC-3)
 - [x] ISC-20: A /api/me/* request made with an expired access token and a valid refresh token gets 200 after a server-side token exchange, with 0 redirects to www.ravelry.com (after: ISC-17)
@@ -357,6 +357,7 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 - 2026-11-05 · ISC-64 amended: reference lists may be cached up to 24 h — because Ravelry's docs recommend caching attribute and category lists for up to 24 hours, and the principal chose to follow them; all other cached responses stay at 300 s or less (affects: ISC-64)
 - 2026-11-05 · ISC-15 amended: a desktop review is accepted — because the principal reviewed /design-system on desktop and judged the mobile e2e projects (360, 375, 390 px) plus phone screenshots enough for the phone layout (affects: ISC-15)
 - 2026-11-05 · D1 and D5 revised: sessions live in an encrypted HttpOnly cookie, with no Redis — because the principal asked for something like localStorage to avoid setting up a database; tokens cannot go in localStorage (ISC-3), so they are sealed with AES-256-GCM in __Host-sid instead; sign-out revokes the refresh token at auth.ravelry.com/oauth2/revoke (found in Ravelry's discovery document); caching moves to Vercel's CDN, and the unread throttle to localStorage; ISC-64 and ISC-65 reworded to match (affects: ISC-3, ISC-18, ISC-20, ISC-64, ISC-65, ISC-75)
+- 2026-11-12 · OAuth 2.0 fallback added (RAVELRY_OAUTH_VERSION=2.0) — because the principal asked to "just go to 2.0" while Ravelry's 2.1 login page returns 500; 2.0 uses www.ravelry.com, the 'offline' scope and no PKCE; 2.1 stays the default and switching back is one setting; ISC-17 reworded for the configured version; risk: 2.0 documents no revocation endpoint, so ISC-65 must be re-proven against a real 2.0 token (affects: ISC-17, ISC-20, ISC-65)
 
 ## Learning
 
@@ -490,3 +491,7 @@ Reach: /patterns/[id] → Buy on Ravelry button; /me/library → download
 ### 2026-11-11 10:00 · verify — sign-in flow built
 > "yes, build the sign-in flow"
 **Settled:** built AES-256-GCM cookie sealing (HKDF from SESSION_SECRET, per-purpose keys), OAuth 2.1 + PKCE sign-in and callback, beta allowlist, refresh (early and on 401, rotation stored), sign-out with RFC 7009 revocation and an Origin check, /api/me/projects, and the header sign-in / sign-out control inside Suspense. ISC-17, ISC-18, ISC-20, ISC-65 and ISC-84 pass, each with a mutation check. A self-review found and fixed a bug: a refresh followed by an upstream error dropped the resealed cookie. ISC-3 browser e2e stays pending until a real sign-in runs. Ladder unchanged.
+
+### 2026-11-12 02:00 · discuss — OAuth 2.0 fallback
+> "logged out of ravelry and it didn't worked" / "can we just go to 2/0" / "i have a client id and secret set"
+**Settled:** RAVELRY_OAUTH_VERSION added (default 2.1). 2.0 mode uses www.ravelry.com, scope 'offline', and no PKCE; 3 new gateway tests (36/36 pass). .env.local set to 2.0. The client id in .env.local is still the 2.1 key, which www.ravelry.com rejects (invalid_client), so the principal needs an OAuth 2.0 key. ISC-17 reworded. Ladder unchanged.
