@@ -101,8 +101,15 @@ export async function revokeToken(token: string, hint: "refresh_token" | "access
       signal: AbortSignal.timeout(10_000),
       cache: "no-store",
     });
+    if (process.env.NODE_ENV !== "production") {
+      // Dev only, status code only: shows whether Ravelry's revocation endpoint exists (ISC-65).
+      console.info(`[auth] token revocation (${hint}) at ${authBase()}/oauth2/revoke -> HTTP ${res.status}`);
+    }
     return res.ok;
-  } catch {
+  } catch (err) {
+    if (process.env.NODE_ENV !== "production") {
+      console.info(`[auth] token revocation (${hint}) failed: ${err instanceof Error ? err.name : "error"}`);
+    }
     return false;
   }
 }
