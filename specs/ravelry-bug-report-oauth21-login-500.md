@@ -22,6 +22,7 @@ We're building a small private, non-commercial client on the Ravelry API, and we
 
 - The same request with **no** Ravelry session redirects correctly to `/account/login`, and after logging in there, the flow completed once and returned a code to our callback.
 - With an existing Ravelry session it fails every time, with the full scope list and with `scope=offline_access` alone.
+- It also fails after logging out of www.ravelry.com first and logging in again during the flow (2026-11-12), so it is not only a stale-session problem. The single success on 2026-11-11 is the exception.
 - The logged-in session in our failing attempts had been on the Pro/developer pages (a business/pro session), in case that matters.
 - Nothing appears in the app's API debug log, presumably because the failure happens before any API call.
 

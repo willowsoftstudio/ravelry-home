@@ -62,6 +62,8 @@ checkout_source: https://www.ravelry.com/api
 
 - 2026-11-12 · Confirmed from the browser's network log: the 500 is step 2 of the flow, `GET https://www.ravelry.com/auth/login?login_challenge=…`, before any login or consent screen. Step 1 (`auth.ravelry.com/oauth2/auth`, 302) is correct. The browser had an existing ravelry.com session (Pro/business). This is a Ravelry-side bug; report drafted in specs/ravelry-bug-report-oauth21-login-500.md. Workaround: be logged out of ravelry.com before signing in.
 
+- 2026-11-12 · Also fails after the principal logged out of ravelry.com and logged in again during the flow. The workaround does not hold; OAuth 2.1 sign-in is blocked on Ravelry.
+
 ## Still to verify with a live call (needs the read-only key in .env.local)
 
 1. The filter parameter names for `patterns/search` and `yarns/search` (craft, category, weight, availability/free, yardage, needle size, difficulty, attributes, designer).
