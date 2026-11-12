@@ -17,8 +17,20 @@ const lines = readFileSync(file, "utf8").split(/\r?\n/);
 const errors = [];
 const seen = new Map();
 
-for (const line of lines) {
-  if (!line.startsWith("| ") || /^\|\s*-/.test(line) || line.startsWith("| capability")) continue;
+// Only the capability table counts: from its "| capability |" header to the first non-table line.
+const start = lines.findIndex((l) => l.startsWith("| capability |"));
+if (start < 0) {
+  console.error(`FAIL ${file}\n  no "| capability |" table found`);
+  process.exit(1);
+}
+const tableLines = [];
+for (const l of lines.slice(start + 1)) {
+  if (!l.startsWith("|")) break;
+  tableLines.push(l);
+}
+
+for (const line of tableLines) {
+  if (/^\|\s*-/.test(line)) continue;
   const cells = line.split("|").slice(1, -1).map((c) => c.trim());
   const [capability, status, checked, evidence] = cells;
   if (!REQUIRED.includes(capability)) {

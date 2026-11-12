@@ -115,10 +115,11 @@ There is no other storage. ISC-64 checks that no database or key-value client is
 Public, with no sign-in: `/`, `/patterns`, `/patterns/[id]`, `/yarns`, `/yarns/[id]`. Confirmed by the full docs (2026-11-05): `patterns/search`, `patterns/show`, `yarns/search` and `yarns/show` are not marked "authenticated", so read-only basic auth reaches them and the sign-in fallback is not needed.
 
 - **Search page.** A Server Component renders the first page of results from `searchParams`, so a shared link renders fully on first load. The filter sheet is a Client Component. Changing a chip updates the URL with `history.replaceState` and fetches `/api/patterns?…` through **TanStack Query**, which keeps an in-session cache keyed by the query string. A repeated filter state therefore renders from memory with no new `/api/*` request (ISC-31, ≤ 200 ms), and a new one renders within 500 ms of the response arriving (ISC-30).
-- **Facets.** Chips map to `patterns/search` parameters (craft, category, weight, yardage, needle size, free/paid, difficulty, attributes, designer). Their option lists come from the cached reference lists. The docs say the API accepts "any of the (many) parameters for filters that are available in the on-site pattern search" without listing them. **[live probe]** records the exact names.
+- **Facets.** Chips map to the `patterns/search` parameters measured in the live probe (2026-11-12): `craft`, `pc` (category permalink), `weight`, `availability` (`free`, `ravelry`), `fit`, `pa` (attribute permalinks), `yardage` (`min|max`), `diff` (`min|max`), `photo=yes` and `designer-link`. Option lists come from the cached reference lists. The needle/hook size facet stays out until its value format is known: `needles=4` makes Ravelry answer 500.
+- **Whitelisted parameters only.** A malformed filter value makes Ravelry answer 500, so `/api/patterns` and `/api/yarns` accept only known parameter names, with values checked against the reference lists (zod at the boundary, decision D4). Only the free-text `query` passes through as typed.
 - **Pattern detail.** `patterns/show`, giving designer, weight, gauge, yardage, sizes, needle or hook, suggested yarns, difficulty, price or "Free", and a link to the pattern on ravelry.com (ISC-28). For a paid pattern, it also shows the Buy on Ravelry link (see Purchasing).
-- **Yarn substitutes.** A server function takes the original yarn (`yarns/show`), runs `yarns/search` filtered by the same weight and a matching fiber family, then ranks results by gauge distance. Each result carries a plain-language reason naming both yarns' weight, fiber content and gauge (ISC-29). `Yarn (full)` gives `yarn_weight`, `yarn_fibers` (category, type, percentage) and `min_gauge`/`max_gauge` per `gauge_divisor`, which is everything the match reason needs. **[live probe]** confirms the yarn search filter names.
-- **Photos.** `next/image` with fixed aspect ratios. The first row is `priority` so LCP stays ≤ 2.5 s on mobile (ISC-54). Owner credit comes from the photo's user (ISC-25).
+- **Yarn substitutes.** A server function takes the original yarn (`yarns/show`), runs `yarns/search` filtered by the same weight and a matching fiber family, then ranks results by gauge distance. Each result carries a plain-language reason naming both yarns' weight, fiber content and gauge (ISC-29). `Yarn (full)` gives `yarn_weight`, `yarn_fibers` (category, type, percentage) and `min_gauge`/`max_gauge` per `gauge_divisor`, which is everything the match reason needs. Yarn search filters (live probe): `weight` and `fiberc` (fiber category id; a name gives 500) narrow the candidates, and `discontinued=no` drops discontinued yarns.
+- **Photos.** `next/image` with fixed aspect ratios, and `remotePatterns` limited to `images4-*.ravelrycache.com` and `avatars-*.ravelrycache.com` (the hosts seen in the live probe). The first row is `priority` so LCP stays ≤ 2.5 s on mobile (ISC-54). Owner credit: a photo whose `user_id` matches one of the designer's accounts (`pattern_author.users`) is credited to that username (151 of 173 photos in the probe), and `copyright_holder` is used when set. Turning any other `user_id` into a username needs the authenticated `people/show`, which the read-only key can't call. **Decision pending** on how to credit those photos for visitors who are not signed in (ISC-25).
 
 ## Workspace
 
@@ -161,10 +162,12 @@ The Ravelry docs show that `carts/*` and `external_checkout` serve **seller stor
 
 Closed by the full docs (2026-11-05): read-only basic auth reaches pattern and yarn search and detail; unread counts come from `extras=1`; ETags work with `If-None-Match`; the Buy link URL is documented; PDF links allow 100 per user per day; Ravelry publishes no general rate limit, which the design already handles.
 
-Still open, all closed by **one live probe** with the read-only key in `.env.local`:
+Closed by the live probe (2026-11-12): search filter names (except needle/hook size), image hosts, `copyright_holder` coverage, ETag 304s, and the read-only key (search 200, `current_user` 403).
 
-1. The filter parameter names for `patterns/search` and `yarns/search`.
-2. The image hosts in `Photo` URLs and the host of PDF download links (needed for `next/image` `remotePatterns` and the egress allowlist).
-3. Whether `copyright_holder` is filled on pattern photos (photo credit).
-4. Whether Ravelry rotates refresh tokens (seen at the first real sign-in, which needs the OAuth 2.1 app).
-5. Latency from `iad1` to `api.ravelry.com` (measured after the first deploy).
+Still open:
+
+1. The value format for the needle/hook size filter (`needles=4` returns 500).
+2. Photo credit for visitors who are not signed in, when the photo isn't the designer's (a decision for the principal).
+3. Whether Ravelry rotates refresh tokens (watch the `[auth]` refresh behaviour after the first hour).
+4. The host of PDF download links (needs a library-pdf token).
+5. Latency from `iad1` to `api.ravelry.com` (after the first deploy).

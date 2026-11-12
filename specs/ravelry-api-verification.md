@@ -8,7 +8,7 @@ Status meanings: `confirmed` = the docs show a method this site can use for this
 
 | capability | status | checked | evidence | notes |
 |---|---|---|---|---|
-| patterns-search | confirmed | 2026-11-05 | https://www.ravelry.com/api | `GET /patterns/search.json`, **not authenticated**: read-only basic auth works. `page_size` defaults to 100. Accepts "any of the (many) parameters for filters that are available in the on-site pattern search"; their names are not listed, so the live probe records them |
+| patterns-search | confirmed | 2026-11-12 | https://www.ravelry.com/api | `GET /patterns/search.json`, **not authenticated**: read-only basic auth works. `page_size` defaults to 100. Accepts "any of the (many) parameters for filters that are available in the on-site pattern search"; their names are not listed, so the live probe records them |
 | patterns-show | confirmed | 2026-11-05 | https://www.ravelry.com/api | `GET /patterns/{id}.json` and `GET /patterns.json?ids=` (multiple), not authenticated. `Pattern (full)` has price, currency, free, gauge, row_gauge, yardage, sizes_available, pattern_needle_sizes, yarn_weight, packs (suggested yarns), difficulty_average, photos, permalink, download_location |
 | pattern-categories | confirmed | 2026-11-05 | https://www.ravelry.com/api | `GET /pattern_categories/list.json`, no API key needed; Ravelry recommends caching up to 24 h |
 | pattern-attributes | confirmed | 2026-11-05 | https://www.ravelry.com/api | `GET /pattern_attributes/groups.json`; also `/yarn_weights.json`, `/color_families.json`, `/fiber_attributes.json`, `/yarn_attributes/groups.json`; cache up to 24 h |
@@ -48,28 +48,54 @@ checkout_source: https://www.ravelry.com/api
 - **Photo credit.** `Photo` carries `user_id` and `copyright_holder`. Ravelry sets `copyright_holder` to the member's username for stash and project photos. **[live probe]** whether it is filled for pattern photos, or whether the username needs a lookup.
 - **Never send `debug=1`.** The docs forbid logging responses without the user's permission.
 
+## Live probe (2026-11-12, read-only basic auth)
+
+The read-only key works: `patterns/search` answers 200. `/current_user.json` answers 403, which proves it is a read-only key, not a personal key. There are no rate-limit headers.
+
+**ETags:** confirmed. Repeating a call with `If-None-Match: <etag>` returns **304**.
+
+**Result counts cap at 100,000** (`paginator.results`). Compare filters against a narrower query.
+
+**Pattern search filters** (measured against `query=cowl`, 78,268 results):
+
+| Facet | Parameter | Example | Result |
+|---|---|---|---|
+| Craft | `craft` | `knitting`, `crochet` | 59,673 / 18,065 |
+| Category | `pc` | `cowl` | filters |
+| Yarn weight | `weight` | `fingering`, `dk` | 10,119 / 13,506 |
+| Free / Ravelry download | `availability` | `free`, `ravelry` | 19,361 / 49,982 |
+| Fit | `fit` | `adult` | 37,686 |
+| Attributes | `pa` | `lace`, `cables` | 10,801 / 8,470 |
+| Yardage range | `yardage` | `200\|400` | 34,689 |
+| Difficulty range | `diff` | `1\|2` | 7,467 |
+| Has photo | `photo` | `yes` | 75,957 |
+| Designer | `designer-link` (permalink), `designer` (name) | `andrea-mowry` | 208 |
+| Needle / hook size | `needles`, `hooks` | `4`, `5` | **HTTP 500**: value format unknown, so this facet is left out until found |
+
+**An unknown or malformed filter value can make Ravelry answer 500** (`needles=4mm`, `fiberc=wool`). The gateway must only forward whitelisted parameter names with values from the cached reference lists, never raw user text (query text excepted).
+
+**Yarn search filters** (against `query=merino`): `weight=fingering` filters, `fiberc=<fiber category id>` filters (`fiberc=1` gives 43,874; a name gives 500), `discontinued=no` filters. `fibertype`, `wpi` and `texture` are ignored.
+
+**Pattern detail:** `free`, `price` (e.g. `7`), `currency` (`USD`), `permalink`, `download_location.type` (`ravelry`), gauge, yardage, sizes, needle sizes, yarn weight, packs and `difficulty_average` are all present.
+
+**Image hosts** (for `next/image` `remotePatterns` and the egress allowlist): `images4-*.ravelrycache.com` (photos) and `avatars-*.ravelrycache.com` (user avatars). The pattern `url` field can point to external sites (e.g. a yarn company), which is a link to show, never something we fetch.
+
+**Photo credit:** every photo has `user_id`. `copyright_holder` is a free-text credit that is sometimes set ("Julie Nagel for Rosy Green Wool") and often empty. Turning a `user_id` into a username needs `people/show`, which is **authenticated** (403 with the read-only key). Across 12 shawl patterns (173 photos):
+- **151** photos belong to the designer: `user_id` matches `pattern_author.users[].id`, which carries the username.
+- **0** had `copyright_holder` in that sample.
+- **22** have no name available to a visitor who is not signed in.
+- Cover photos: 11 of 12 creditable.
+
 ## Allowed outbound hosts (ISC-4)
 
 - `api.ravelry.com`: API calls for confirmed capabilities only
-- `auth.ravelry.com`: `/oauth2/auth` and `/oauth2/token` only
-- Image and delivery hosts: **[live probe]**, recorded from real responses
-
-## Live sign-in findings
-
-- 2026-11-11 · With `scope=offline_access forum-write message-write deliveries-read`, Ravelry's own login/consent page (`www.ravelry.com/auth/login?login_challenge=…`) answers **HTTP 500** for a signed-in Ravelry user. Without a Ravelry session the same page correctly redirects to `/account/login`. The app's debug log shows nothing, because the failure happens before any API call.
-- 2026-11-11 · With `scope=offline_access` alone, in a private window (no Ravelry session; the principal logged in on Ravelry's page), sign-in completes: the callback exchanges the code and the allowlisted user lands on `/me`.
-- 2026-11-11 · **Correction:** a later attempt with `scope=offline_access` alone also got the 500, so the scopes are not the cause. The pattern fits a Ravelry bug when the browser already has a Ravelry session: the 500 happened with an existing session both times, and the one success was with none. **[live]** confirming with full scopes in a fresh private window, and with the principal logged out of ravelry.com first.
-
-- 2026-11-12 · Confirmed from the browser's network log: the 500 is step 2 of the flow, `GET https://www.ravelry.com/auth/login?login_challenge=…`, before any login or consent screen. Step 1 (`auth.ravelry.com/oauth2/auth`, 302) is correct. The browser had an existing ravelry.com session (Pro/business). This is a Ravelry-side bug; report drafted in specs/ravelry-bug-report-oauth21-login-500.md. Workaround: be logged out of ravelry.com before signing in.
-
-- 2026-11-12 · Also fails after the principal logged out of ravelry.com and logged in again during the flow. The workaround does not hold; OAuth 2.1 sign-in is blocked on Ravelry.
-
-- 2026-11-12 · **OAuth 2.0 works** (`RAVELRY_OAUTH_VERSION=2.0`, a separate 2.0 key, https redirect URIs). The live sign-in exchanged the code for an access token and a refresh token (87 chars each) and granted all four scopes (`offline forum-write message-write deliveries-read`). The sealed session cookie is 530 bytes. Ravelry shows its consent screen on each sign-in.
-- 2026-11-12 · **Revocation works on 2.0:** sign-out's `POST https://www.ravelry.com/oauth2/revoke` (refresh token) answered **HTTP 200**. **[verify]** whether it also invalidates the live access token (needs a replay of a pre-sign-out cookie).
+- `www.ravelry.com`: `/oauth2/auth`, `/oauth2/token`, `/oauth2/revoke` (OAuth 2.0 fallback)
+- `auth.ravelry.com`: `/oauth2/auth`, `/oauth2/token`, `/oauth2/revoke` (OAuth 2.1)
+- `images4-*.ravelrycache.com`, `avatars-*.ravelrycache.com`: images, loaded by the browser through `next/image`, never fetched by the gateway
 
 ## Still to verify with a live call (needs the read-only key in .env.local)
 
-1. The filter parameter names for `patterns/search` and `yarns/search` (craft, category, weight, availability/free, yardage, needle size, difficulty, attributes, designer).
-2. The image hosts in `Photo` URLs and the host of `generate_download_link` URLs.
-3. Whether `copyright_holder` is set on pattern photos.
-4. Response latency from the deploy region.
+1. ~~Filter parameter names~~ (done 2026-11-12), except the needle/hook size value format.
+2. ~~Image hosts~~ (done 2026-11-12). The host of `generate_download_link` URLs is still open (needs a signed-in library-pdf token).
+3. ~~Whether `copyright_holder` is set~~ (done 2026-11-12: sometimes; see Photo credit).
+4. Response latency from the deploy region (after the first deploy). From this machine: search ~140–750 ms, pattern detail ~110 ms.
