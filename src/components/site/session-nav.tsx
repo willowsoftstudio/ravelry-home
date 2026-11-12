@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import Link from "next/link";
 import { readSession } from "@/lib/auth/session";
 import { SESSION_COOKIE } from "@/lib/session/cookies";
@@ -8,6 +9,9 @@ const control =
 
 // Reads the session cookie, so it renders inside <Suspense> (Cache Components).
 export async function SessionNav() {
+  // Request-time only: the session check uses the clock (Date.now), which Cache
+  // Components refuses during prerendering (it crashed the header on /_not-found).
+  await connection();
   const session = readSession((await cookies()).get(SESSION_COOKIE)?.value);
   if (!session) {
     return (
