@@ -60,6 +60,8 @@ checkout_source: https://www.ravelry.com/api
 - 2026-11-11 · With `scope=offline_access` alone, in a private window (no Ravelry session; the principal logged in on Ravelry's page), sign-in completes: the callback exchanges the code and the allowlisted user lands on `/me`.
 - 2026-11-11 · **Correction:** a later attempt with `scope=offline_access` alone also got the 500, so the scopes are not the cause. The pattern fits a Ravelry bug when the browser already has a Ravelry session: the 500 happened with an existing session both times, and the one success was with none. **[live]** confirming with full scopes in a fresh private window, and with the principal logged out of ravelry.com first.
 
+- 2026-11-12 · Confirmed from the browser's network log: the 500 is step 2 of the flow, `GET https://www.ravelry.com/auth/login?login_challenge=…`, before any login or consent screen. Step 1 (`auth.ravelry.com/oauth2/auth`, 302) is correct. The browser had an existing ravelry.com session (Pro/business). This is a Ravelry-side bug; report drafted in specs/ravelry-bug-report-oauth21-login-500.md. Workaround: be logged out of ravelry.com before signing in.
+
 ## Still to verify with a live call (needs the read-only key in .env.local)
 
 1. The filter parameter names for `patterns/search` and `yarns/search` (craft, category, weight, availability/free, yardage, needle size, difficulty, attributes, designer).
