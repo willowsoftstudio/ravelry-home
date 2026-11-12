@@ -1,6 +1,6 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
-import { authBase, clientCredentials, redirectUri, SCOPES } from "./config";
+import { authBase, clientCredentials, redirectUri, scopes } from "./config";
 
 export type TokenSet = {
   accessToken: string;
@@ -37,7 +37,7 @@ export function authorizeUrl(state: string, challenge: string): string {
     response_type: "code",
     client_id: clientCredentials().id,
     redirect_uri: redirectUri(),
-    scope: SCOPES.join(" "),
+    scope: scopes().join(" "),
     state,
     code_challenge: challenge,
     code_challenge_method: "S256",

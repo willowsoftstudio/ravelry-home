@@ -23,4 +23,12 @@ describe("configurable redirect URI", () => {
       expect(exchange.body?.get("redirect_uri")).toBe(expected);
     });
   }
+
+  it("requests the default scopes, or RAVELRY_SCOPES when set", async () => {
+    stubAuthEnv();
+    vi.stubGlobal("fetch", mockRavelry().fetchMock);
+    expect((await signIn()).location.searchParams.get("scope")).toBe("offline_access forum-write message-write deliveries-read");
+    vi.stubEnv("RAVELRY_SCOPES", "offline_access");
+    expect((await signIn()).location.searchParams.get("scope")).toBe("offline_access");
+  });
 });

@@ -2,7 +2,13 @@ import "server-only";
 
 // OAuth 2.1 settings for Ravelry (specs/ravelry-api-verification.md, oauth2-scopes).
 
-export const SCOPES = ["offline_access", "forum-write", "message-write", "deliveries-read"];
+const DEFAULT_SCOPES = ["offline_access", "forum-write", "message-write", "deliveries-read"];
+
+/** Requested scopes. RAVELRY_SCOPES (space-separated) overrides the default, e.g. to diagnose consent errors. */
+export function scopes(): string[] {
+  const fromEnv = process.env.RAVELRY_SCOPES?.trim();
+  return fromEnv ? fromEnv.split(/\s+/) : DEFAULT_SCOPES;
+}
 
 export function authBase(): string {
   return (process.env.RAVELRY_AUTH_BASE || "https://auth.ravelry.com").replace(/\/+$/, "");
