@@ -38,9 +38,18 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-scrim: var(--scrim);
+  --color-section-alt: var(--section-alt);
+  --color-glass: var(--glass);
+  --color-glass-strong: var(--glass-strong);
+  --color-glass-border: var(--glass-border);
+  --color-overlay: var(--overlay);
+  --color-overlay-foreground: var(--overlay-foreground);
+  --color-teal: var(--teal);
+  --color-mustard: var(--mustard);
+  --color-coral: var(--coral);
 
-  --font-sans: var(--font-jakarta);
-  --font-heading: var(--font-jakarta);
+  --font-sans: var(--font-nunito);
+  --font-heading: var(--font-fraunces);
 
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -51,93 +60,135 @@
   --shadow-sm: 0 1px 2px var(--shadow-color);
   --shadow-md: 0 4px 6px var(--shadow-color);
   --shadow-lg: 0 10px 15px var(--shadow-color);
+  /* Soft, diffused lift for floating layers (no heavy drop shadows) */
+  --shadow-float: 0 1px 2px var(--shadow-color), 0 8px 24px -12px var(--shadow-color);
+  /* Resting depth for raised surfaces: a hairline-tight shadow, not a drop shadow */
+  --shadow-raised: 0 1px 1px var(--shadow-color), 0 2px 6px -2px var(--shadow-color);
 }
 
-/* Light theme (MASTER.md Project Additions: modern neutral, 2026-11-05) */
+/* Light theme (Niddy brand palette, Niddy_Brand_Guide.md, 2026-11-13) */
 :root,
 .light {
-  --background: #fafafa;
-  --foreground: #09090b;
+  --background: #fffaf5;
+  --foreground: #281d2c;
   --card: #ffffff;
-  --card-foreground: #09090b;
+  --card-foreground: #281d2c;
   --popover: #ffffff;
-  --popover-foreground: #09090b;
-  --primary: #c2410c;
+  --popover-foreground: #281d2c;
+  --primary: #4b1755;
   --primary-foreground: #ffffff;
-  --secondary: #9a3412;
+  --secondary: #922e76;
   --secondary-foreground: #ffffff;
-  --muted: #f4f4f5;
-  --muted-foreground: #52525b;
-  /* shadcn "accent" is the subtle hover surface; the green CTA is --cta */
-  --accent: #f4f4f5;
-  --accent-foreground: #09090b;
-  --cta: #047857;
+  --muted: #f6ede5;
+  --muted-foreground: #66566a;
+  --accent: #f6ede5;
+  --accent-foreground: #281d2c;
+  --cta: #4b1755;
   --cta-foreground: #ffffff;
-  --destructive: #dc2626;
+  --destructive: #c42020;
   --destructive-foreground: #ffffff;
-  --border: #e4e4e7;
-  --input: #8a8a93;
-  --ring: #c2410c;
-  --scrim: rgb(9 9 11 / 0.5);
-  --shadow-color: rgb(9 9 11 / 0.06);
-  --radius: 0.75rem;
+  --border: #eadcd0;
+  --input: #958393;
+  --ring: #922e76;
+  --scrim: rgb(40 29 44 / 0.5);
+  --shadow-color: rgb(40 29 44 / 0.1);
+  --teal: #07707f;
+  --mustard: #e6a21c;
+  --coral: #e97579;
+  --section-alt: #fff4e8;
+  --glass: rgb(255 250 245 / 0.66);
+  --glass-strong: rgb(255 255 255 / 0.88);
+  --glass-border: rgb(40 29 44 / 0.08);
+  --glass-highlight: rgb(255 255 255 / 0.75);
+  --glow-1: rgb(146 46 118 / 0.11);
+  --glow-2: rgb(8 127 145 / 0.1);
+  --glow-3: rgb(230 162 28 / 0.14);
+  --overlay: #140e17;
+  --overlay-foreground: #fff4e8;
+  --radius: 0.5rem;
   color-scheme: light;
 }
 
-/* Dark theme (MASTER.md Project Additions: modern charcoal, 2026-11-05) */
+/* Dark theme (Niddy brand palette adapted for dark, 2026-11-13) */
 .dark {
-  --background: #0f0f11;
-  --foreground: #f4f4f5;
-  --card: #18181b;
-  --card-foreground: #f4f4f5;
-  --popover: #1f1f23;
-  --popover-foreground: #f4f4f5;
-  --primary: #f59e78;
-  --primary-foreground: #0f0f11;
-  --secondary: #ea8a5e;
-  --secondary-foreground: #0f0f11;
-  --muted: #1f1f23;
-  --muted-foreground: #a1a1aa;
-  --accent: #1f1f23;
-  --accent-foreground: #f4f4f5;
-  --cta: #34d399;
-  --cta-foreground: #052e1f;
+  --background: #17111b;
+  --foreground: #f6eef2;
+  --card: #201826;
+  --card-foreground: #f6eef2;
+  --popover: #281e2f;
+  --popover-foreground: #f6eef2;
+  --primary: #e7a3d6;
+  --primary-foreground: #2a0e30;
+  --secondary: #f29bbb;
+  --secondary-foreground: #2a0e1c;
+  --muted: #261c2c;
+  --muted-foreground: #b8a8bc;
+  --accent: #261c2c;
+  --accent-foreground: #f6eef2;
+  --cta: #e7a3d6;
+  --cta-foreground: #2a0e30;
   --destructive: #f87171;
-  --destructive-foreground: #0f0f11;
-  --border: #2a2a2e;
-  --input: #6b6b73;
-  --ring: #f59e78;
+  --destructive-foreground: #17111b;
+  --border: #392c40;
+  --input: #827089;
+  --ring: #e7a3d6;
   --scrim: rgb(0 0 0 / 0.7);
   --shadow-color: rgb(0 0 0 / 0.5);
+  --teal: #5cc6d6;
+  --mustard: #f0b84a;
+  --coral: #f2979a;
+  --section-alt: #1d1622;
+  --glass: rgb(32 24 38 / 0.6);
+  --glass-strong: rgb(32 24 38 / 0.88);
+  --glass-border: rgb(255 255 255 / 0.08);
+  --glass-highlight: rgb(255 255 255 / 0.06);
+  --glow-1: rgb(231 163 214 / 0.08);
+  --glow-2: rgb(92 198 214 / 0.06);
+  --glow-3: rgb(240 184 74 / 0.06);
+  --overlay: #140e17;
+  --overlay-foreground: #fff4e8;
   color-scheme: dark;
 }
 
 /* Follow the OS dark preference unless a subtree forces light */
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
-    --background: #0f0f11;
-    --foreground: #f4f4f5;
-    --card: #18181b;
-    --card-foreground: #f4f4f5;
-    --popover: #1f1f23;
-    --popover-foreground: #f4f4f5;
-    --primary: #f59e78;
-    --primary-foreground: #0f0f11;
-    --secondary: #ea8a5e;
-    --secondary-foreground: #0f0f11;
-    --muted: #1f1f23;
-    --muted-foreground: #a1a1aa;
-    --accent: #1f1f23;
-    --accent-foreground: #f4f4f5;
-    --cta: #34d399;
-    --cta-foreground: #052e1f;
+    --background: #17111b;
+    --foreground: #f6eef2;
+    --card: #201826;
+    --card-foreground: #f6eef2;
+    --popover: #281e2f;
+    --popover-foreground: #f6eef2;
+    --primary: #e7a3d6;
+    --primary-foreground: #2a0e30;
+    --secondary: #f29bbb;
+    --secondary-foreground: #2a0e1c;
+    --muted: #261c2c;
+    --muted-foreground: #b8a8bc;
+    --accent: #261c2c;
+    --accent-foreground: #f6eef2;
+    --cta: #e7a3d6;
+    --cta-foreground: #2a0e30;
     --destructive: #f87171;
-    --destructive-foreground: #0f0f11;
-    --border: #2a2a2e;
-    --input: #6b6b73;
-    --ring: #f59e78;
+    --destructive-foreground: #17111b;
+    --border: #392c40;
+    --input: #827089;
+    --ring: #e7a3d6;
     --scrim: rgb(0 0 0 / 0.7);
     --shadow-color: rgb(0 0 0 / 0.5);
+    --teal: #5cc6d6;
+    --mustard: #f0b84a;
+    --coral: #f2979a;
+    --section-alt: #1d1622;
+    --glass: rgb(32 24 38 / 0.6);
+    --glass-strong: rgb(32 24 38 / 0.88);
+    --glass-border: rgb(255 255 255 / 0.08);
+    --glass-highlight: rgb(255 255 255 / 0.06);
+    --glow-1: rgb(231 163 214 / 0.08);
+    --glow-2: rgb(92 198 214 / 0.06);
+    --glow-3: rgb(240 184 74 / 0.06);
+    --overlay: #140e17;
+    --overlay-foreground: #fff4e8;
     color-scheme: dark;
   }
 }
@@ -178,7 +229,11 @@
   h2,
   h3,
   h4 {
-    @apply font-heading font-semibold tracking-[-0.015em] [word-spacing:0.08em];
+    @apply font-heading font-semibold tracking-[-0.02em];
+    font-variation-settings: "SOFT" 50;
+  }
+  body {
+    -webkit-font-smoothing: antialiased;
   }
   button:not(:disabled),
   [role="button"]:not(:disabled) {
@@ -193,5 +248,48 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+  }
+}
+
+/*
+ * Reskin 2026-11-13 (MASTER.md Project Additions: "Glass and ambient light").
+ * glass / glass-strong: frosted panels with a 1px translucent edge and an inner
+ * top highlight. Ambient light: three fixed, low-alpha radial glows behind the
+ * page (warm apricot, sage, rose; no purple-blue), static under reduced motion.
+ */
+@utility glass {
+  background-color: var(--glass);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
+}
+
+@utility glass-strong {
+  background-color: var(--glass-strong);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--shadow-raised);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  backdrop-filter: blur(24px) saturate(1.6);
+}
+
+@layer base {
+  body {
+    position: relative;
+    isolation: isolate;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(42% 38% at 12% 8%, var(--glow-1), transparent 70%),
+      radial-gradient(36% 32% at 88% 14%, var(--glow-2), transparent 70%),
+      radial-gradient(48% 42% at 62% 96%, var(--glow-3), transparent 72%);
+  }
+  :focus-visible {
+    scroll-margin-top: 5rem; /* keep focused controls clear of the sticky header */
   }
 }

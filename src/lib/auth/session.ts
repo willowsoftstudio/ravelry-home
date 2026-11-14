@@ -8,7 +8,7 @@ import { seal, unseal } from "@/lib/session/seal";
 import { isAllowlisted } from "./config";
 import { refreshTokens } from "./oauth";
 
-const REFRESH_EARLY_MS = 60_000;
+export const REFRESH_EARLY_MS = 60_000;
 export const SESSION_PURPOSE = "session";
 
 export function readSession(sealed: string | undefined): Session | null {
@@ -27,7 +27,8 @@ export function clearSessionCookie(res: NextResponse): void {
   res.cookies.set(SESSION_COOKIE, "", { ...baseCookie, maxAge: 0 });
 }
 
-async function refreshed(session: Session): Promise<Session | null> {
+/** Exchange the refresh token for new tokens; null when that fails. */
+export async function refreshed(session: Session): Promise<Session | null> {
   if (!session.refreshToken) return null;
   try {
     const t = await refreshTokens(session.refreshToken);

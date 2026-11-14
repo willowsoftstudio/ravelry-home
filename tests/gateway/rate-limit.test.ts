@@ -4,8 +4,10 @@ import { GET } from "@/app/api/patterns/route";
 
 // ISA ISC-21: an upstream 429 becomes a 503 with an integer Retry-After in [1, 120].
 
+const EMPTY_SEARCH = { patterns: [], paginator: { page: 1, page_count: 0, results: 0 } };
+
 function upstream(status: number, headers: Record<string, string> = {}) {
-  return vi.fn(async () => new Response(JSON.stringify({}), { status, headers }));
+  return vi.fn(async () => new Response(JSON.stringify(status === 200 ? EMPTY_SEARCH : {}), { status, headers }));
 }
 
 const request = () => new NextRequest("http://localhost/api/patterns?query=cowl");

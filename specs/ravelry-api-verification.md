@@ -86,12 +86,15 @@ The read-only key works: `patterns/search` answers 200. `/current_user.json` ans
 - **22** have no name available to a visitor who is not signed in.
 - Cover photos: 11 of 12 creditable.
 
+**Category OR filter (live probe 2026-11-13):** `pc` accepts permalinks joined by `|` as OR (`query=fox`: hat 815, scarf 276, `hat|scarf` 1085). Parent categories include their children (`sweater` > `cardigan`). `paginator.results` is capped at 100,000.
+
 ## Allowed outbound hosts (ISC-4)
 
 - `api.ravelry.com`: API calls for confirmed capabilities only
 - `www.ravelry.com`: `/oauth2/auth`, `/oauth2/token`, `/oauth2/revoke` (OAuth 2.0 fallback)
 - `auth.ravelry.com`: `/oauth2/auth`, `/oauth2/token`, `/oauth2/revoke` (OAuth 2.1)
 - `images4-*.ravelrycache.com`, `avatars-*.ravelrycache.com`: images, loaded by the browser through `next/image`, never fetched by the gateway
+- `www.ecb.europa.eu`: `/stats/eurofxref/eurofxref-daily.xml` only, the European Central Bank's daily euro reference rates for the approximate price estimate (Decision 2026-11-13). Checked 2026-11-13: HTTP 200, `text/xml`, no key, 30 currencies against EUR, including every currency seen on paid patterns (USD, GBP, DKK, CHF, CAD, PLN, NOK). Published once per working day around 16:00 CET.
 
 ## Still to verify with a live call (needs the read-only key in .env.local)
 

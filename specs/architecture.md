@@ -125,7 +125,7 @@ Public, with no sign-in: `/`, `/patterns`, `/patterns/[id]`, `/yarns`, `/yarns/[
 
 Signed-in only: `/me` with the tabs Projects, Queue, Stash, Favorites and Library, plus `/me/projects/[id]`. These use the Dense spacing tier.
 
-- **Reads.** Server Components call the gateway with the session's bearer token. Tab counts come from each list's `paginator.results` (ISC-32). Nothing is shared-cached.
+- **Reads.** Server Components call the gateway with the session's bearer token. Tab counts come from each list's `paginator.results` (ISC-32). Nothing is shared-cached. Server Components can't set cookies, so `src/proxy.ts` (matcher `/me/*`) refreshes a token that expires within 60 s before the page renders: it reseals the cookie, forwards it on the request the page reads, and sets it on the response, which keeps a rotated refresh token (ISC-20). A failed refresh clears the cookie and the page shows Sign in. The four tabs that aren't open are counted with `page_size=1` requests.
 - **Writes.** Client Components call `/api/me/*` route handlers, which call Ravelry and return **Ravelry's response**. While a write is in flight the control shows a pending state. It shows success, and the returned value, only after Ravelry's 2xx (ISC-33, ISC-34, ISC-36, ISC-58).
 - **Failures.** A 422, 429 or 5xx, or no answer within 10 s, restores the pre-edit value within 1 s and announces the error in an `aria-live` region (ISC-35).
 - **Write-backs used.** `queue/create`, `queue/delete`, `queue/reposition`, `stash/update`, `projects/update`, `favorites/create`, `favorites/delete`. Photo upload (`upload/request_token` → `upload/image` → `projects/create_photo` → `photos/status`) is listed in the docs but is a stretch goal, behind its capability flag.

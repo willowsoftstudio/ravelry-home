@@ -55,3 +55,7 @@ next-env.d.ts
 
 # local HTTPS certificates from next dev --experimental-https
 /certificates/
+
+# Brand source assets (27 MB originals); optimized copies live in public/brand/
+/Niddy_Brand_and_Images/
+/Niddy_Brand_and_Images.zip

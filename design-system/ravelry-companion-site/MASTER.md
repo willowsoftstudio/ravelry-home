@@ -273,7 +273,7 @@ Before delivering any UI code, verify:
 
 ### Fonts
 
-- **Plus Jakarta Sans** for headings and body (supersedes the generated Varela Round + Nunito Sans above, 2026-11-05). The principal chose it for a sleeker, modern look; it is the generator's pick for "sleek minimal productivity tool". Headings use weight 600 with letter-spacing -0.015em and word-spacing 0.08em (the font's narrow word space plus full `tracking-tight` crowds the word gap at display sizes); body uses 400–500 at 16px minimum. Loaded through `next/font` (self-hosted at build time), not a Google Fonts `@import`, to avoid a render-blocking request.
+- ~~**Plus Jakarta Sans** for headings and body~~ (superseded by Fraunces + Nunito Sans, 2026-11-13; see Niddy brand adoption) (supersedes the generated Varela Round + Nunito Sans above, 2026-11-05). The principal chose it for a sleeker, modern look; it is the generator's pick for "sleek minimal productivity tool". Headings use weight 600 with letter-spacing -0.015em and word-spacing 0.08em (the font's narrow word space plus full `tracking-tight` crowds the word gap at display sizes); body uses 400–500 at 16px minimum. Loaded through `next/font` (self-hosted at build time), not a Google Fonts `@import`, to avoid a render-blocking request.
 
 ### Component Spec overrides (as built in src/components/ui)
 
@@ -285,3 +285,28 @@ Before delivering any UI code, verify:
 | Modal background `white`, overlay `rgba(0,0,0,0.5)` | `--color-popover`, `--color-scrim` | Literal colors break the dark theme and ISA ISC-12 |
 | Button padding `12px 24px` | `min-h-11` (44px) + `px-6` | Keeps every target at 44x44px (ISA ISC-13); `sm` and icon sizes keep 44px too |
 | Input font size 16px | 16px at every width (shadcn's `md:text-sm` removed) | Matches the spec; avoids iOS zoom on focus |
+
+### Reskin 2026-11-13: glass and ambient light (pending principal approval)
+
+Supersedes the card and button shapes above where they differ. Tokens live in `src/app/globals.css`; new contrast pairs are in `contrast-pairs.json`.
+
+- **Shape:** `--radius` 0.5rem (8px). Controls and cards use 6–12px corners. Full pills only for small badges (Free, counts, status).
+- **Type:** compact, tight headings (`tracking -0.025em`, page titles 24–30px, product titles up to 30px); UI text 14px; body word-spacing 0.06em because Plus Jakarta Sans has narrow spaces at small semibold sizes.
+- **Controls:** 44px tall on phones (ISC-13), 36–40px from `sm` up. 2px focus ring unchanged (ISC-56).
+- **Depth:** hairline borders plus `--shadow-raised` (1–6px soft) at rest and `--shadow-float` on hover; no heavy drop shadows. `glass` / `glass-strong` (backdrop blur, 1px translucent edge, inner highlight) for the sticky header, the filter sheet, the price panel and the sign-in notice.
+- **Ambient light:** three fixed, low-alpha radial glows behind the page (`--glow-1..3`: apricot, sage, rose). No purple-blue gradients.
+- **Layout:** full-bleed `--section-alt` bands for the home quick links, the pattern description and the footer. Result grids go to 5 columns at `xl`. Photo cards drop their box: a raised photo with a hairline ring and text below. The product page uses a square gallery (≤ 30rem) beside the details; nothing is sticky except the header.
+- **Overlay:** the photo viewer uses `--overlay` / `--overlay-foreground` (fixes an ISC-12 violation that used Tailwind's black and white).
+
+### Niddy brand adoption 2026-11-13 (pending principal approval)
+
+Source: `Niddy_Brand_and_Images/` (Niddy_Brand_Guide.md, niddy-colors.css, Niddy_Website_Copy.md, Category_Images). Supersedes the terracotta/green palette and Plus Jakarta Sans above; the shape, depth and glass rules of the reskin stay.
+
+- **Palette (light):** plum `#4b1755` for headings, primary buttons (`--primary`, `--cta`); berry `#922e76` for accents and focus rings; teal `#07707f` (brand `#087F91` darkened to reach 4.5:1) for "Free"; cream `#fff4e8` for bands and a lighter cream `#fffaf5` page; dark ink `#281d2c` text. Coral and mustard fail text contrast on cream (2.7:1, 2.0:1), so they are decoration only (`--coral`, `--mustard`, the ambient glows).
+- **Palette (dark):** ink-plum surfaces (`#17111b` / `#201826` / `#281e2f`), orchid `#e7a3d6` for headings and buttons with dark plum text, light teal `#5cc6d6`. All 25 pairs in `contrast-pairs.json` pass in both themes.
+- **Type:** Fraunces (display headings and the wordmark, `SOFT` 50) and Nunito Sans (interface and body), self-hosted by next/font. No decorative script in navigation or text.
+- **Wordmark:** "Niddy" set in Fraunces until a vector logo exists; the logos in the homepage concepts are generated artwork, not a finalized mark.
+- **Copy:** tagline "Find it. Love it. Make it." and the homepage, search and promo copy from Niddy_Website_Copy.md. Left out because they are not true of the site: "marketplace", "one-stop shop… everything you need", "Shop Unique Handmade Goods", "Search thousands", "Meet the Designers" (no page yet), and "skill level" search (no filter yet). Purchases are a hand-off to Ravelry (ISC-79, ISC-80).
+- **Images:** seven category photos are served as pre-sized WebP from `public/brand/categories/` (384 and 768 px, 44–168 KB, from ~3 MB PNGs), square, with no text overlay and with alt text; labels are rendered as text. Yarn & Supplies is omitted because nothing is stocked. The 7 tiles wrap in rows of 4 (3 on tablets, 2 on phones) with the short last row centered.
+- **Category filters:** Knitting `craft=knitting`, Crochet `craft=crochet`, Sweaters & Cardigans `pc=sweater`, Blankets & Afghans `pc=blanket`, Hats & Scarves `pc=hat|scarf` (Ravelry reads `|` as OR), Amigurumi & Plushies `pc=softies`, Home Decor `pc=home` (checked against pattern_categories/list on 2026-11-13; parents include their children).
+

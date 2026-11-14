@@ -1,5 +1,5 @@
 {
-  "source": "Token names as shipped in src/app/globals.css (MASTER.md roles: on-X = X-foreground, Accent/CTA = cta). Stored ratios are documentation; tests/unit/design-tokens.contrast.test.ts recomputes them from globals.css. Recomputed 2026-11-05 for the modern neutral/charcoal palettes.",
+  "source": "Token names as shipped in src/app/globals.css (MASTER.md roles: on-X = X-foreground, Accent/CTA = cta). Stored ratios are documentation; tests/unit/design-tokens.contrast.test.ts recomputes them from globals.css. Recomputed 2026-11-13 for the Niddy brand palette (plum, berry, teal, cream).",
   "bars": {
     "text": 4.5,
     "ui": 3.0
@@ -9,106 +9,176 @@
       "kind": "text",
       "fg": "--primary-foreground",
       "bg": "--primary",
-      "light": 5.18,
-      "dark": 9.16
+      "light": 13.52,
+      "dark": 8.81
     },
     {
       "kind": "text",
       "fg": "--secondary-foreground",
       "bg": "--secondary",
       "light": 7.31,
-      "dark": 7.56
+      "dark": 8.64
     },
     {
       "kind": "text",
       "fg": "--cta-foreground",
       "bg": "--cta",
-      "light": 5.48,
-      "dark": 7.71
+      "light": 13.52,
+      "dark": 8.81
     },
     {
       "kind": "text",
       "fg": "--foreground",
       "bg": "--background",
-      "light": 19.06,
-      "dark": 17.42
+      "light": 15.54,
+      "dark": 16.28
     },
     {
       "kind": "text",
       "fg": "--card-foreground",
       "bg": "--card",
-      "light": 19.9,
-      "dark": 16.12
+      "light": 16.12,
+      "dark": 15.11
     },
     {
       "kind": "text",
       "fg": "--muted-foreground",
       "bg": "--muted",
-      "light": 7.03,
-      "dark": 6.41
+      "light": 5.85,
+      "dark": 7.29
     },
     {
       "kind": "text",
       "fg": "--muted-foreground",
       "bg": "--background",
-      "light": 7.41,
-      "dark": 7.47
+      "light": 6.52,
+      "dark": 8.27
     },
     {
       "kind": "text",
       "fg": "--destructive-foreground",
       "bg": "--destructive",
-      "light": 4.83,
-      "dark": 6.92
+      "light": 5.87,
+      "dark": 6.7
     },
     {
       "kind": "text",
       "fg": "--primary",
       "bg": "--background",
-      "light": 4.96,
-      "dark": 9.16
+      "light": 13.04,
+      "dark": 9.37
     },
     {
       "kind": "text",
       "fg": "--primary",
       "bg": "--card",
-      "light": 5.18,
-      "dark": 8.47
+      "light": 13.52,
+      "dark": 8.69
     },
     {
       "kind": "ui",
       "fg": "--ring",
       "bg": "--background",
-      "light": 4.96,
-      "dark": 9.16
+      "light": 7.04,
+      "dark": 9.37
     },
     {
       "kind": "ui",
       "fg": "--input",
       "bg": "--background",
-      "light": 3.28,
-      "dark": 3.63
+      "light": 3.4,
+      "dark": 4.09
     },
     {
       "kind": "ui",
       "fg": "--input",
       "bg": "--card",
-      "light": 3.42,
-      "dark": 3.35
+      "light": 3.53,
+      "dark": 3.79
     },
     {
       "kind": "ui",
       "fg": "--cta",
       "bg": "--background",
-      "light": 5.25,
-      "dark": 9.96
+      "light": 13.04,
+      "dark": 9.37
     },
     {
       "kind": "ui",
       "fg": "--destructive",
       "bg": "--background",
-      "light": 4.63,
-      "dark": 6.92
+      "light": 5.66,
+      "dark": 6.7
+    },
+    {
+      "kind": "text",
+      "fg": "--foreground",
+      "bg": "--section-alt",
+      "light": 14.86,
+      "dark": 15.49
+    },
+    {
+      "kind": "text",
+      "fg": "--muted-foreground",
+      "bg": "--section-alt",
+      "light": 6.24,
+      "dark": 7.87
+    },
+    {
+      "kind": "text",
+      "fg": "--primary",
+      "bg": "--section-alt",
+      "light": 12.47,
+      "dark": 8.91
+    },
+    {
+      "kind": "text",
+      "fg": "--overlay-foreground",
+      "bg": "--overlay",
+      "light": 17.52,
+      "dark": 17.52
+    },
+    {
+      "kind": "ui",
+      "fg": "--input",
+      "bg": "--section-alt",
+      "light": 3.26,
+      "dark": 3.89
+    },
+    {
+      "kind": "text",
+      "fg": "--teal",
+      "bg": "--background",
+      "light": 5.57,
+      "dark": 9.28
+    },
+    {
+      "kind": "text",
+      "fg": "--teal",
+      "bg": "--section-alt",
+      "light": 5.33,
+      "dark": 8.83
+    },
+    {
+      "kind": "text",
+      "fg": "--primary",
+      "bg": "--muted",
+      "light": 11.7,
+      "dark": 8.26
+    },
+    {
+      "kind": "text",
+      "fg": "--cta",
+      "bg": "--section-alt",
+      "light": 12.47,
+      "dark": 8.91
+    },
+    {
+      "kind": "ui",
+      "fg": "--input",
+      "bg": "--muted",
+      "light": 3.05,
+      "dark": 3.6
     }
   ]
 }
