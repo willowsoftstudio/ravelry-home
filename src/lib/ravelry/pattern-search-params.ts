@@ -10,11 +10,21 @@ export const WEIGHTS = [
   "cobweb", "lace", "light-fingering", "fingering", "sport", "dk",
   "worsted", "aran", "bulky", "super-bulky", "jumbo", "thread",
 ] as const;
+export const FITS = ["adult", "baby", "toddler", "child", "teen", "preemie"] as const;
 
 export const WEIGHT_LABELS: Record<(typeof WEIGHTS)[number], string> = {
   cobweb: "Cobweb", lace: "Lace", "light-fingering": "Light fingering", fingering: "Fingering",
   sport: "Sport", dk: "DK", worsted: "Worsted", aran: "Aran", bulky: "Bulky",
   "super-bulky": "Super bulky", jumbo: "Jumbo", thread: "Thread",
+};
+
+export const FIT_LABELS: Record<(typeof FITS)[number], string> = {
+  adult: "Adult",
+  baby: "Baby",
+  toddler: "Toddler",
+  child: "Child",
+  teen: "Teen",
+  preemie: "Preemie",
 };
 
 export const PAGE_SIZE = 24;
@@ -27,6 +37,7 @@ export const patternSearchSchema = z.object({
   craft: optionalEnum(CRAFTS),
   availability: optionalEnum(AVAILABILITY),
   weight: optionalEnum(WEIGHTS),
+  fit: optionalEnum(FITS),
   // Category permalink, or up to 3 joined by "|" (Ravelry reads it as OR: live probe
   // 2026-11-13, hat 815 + scarf 276 -> hat|scarf 1085). Each one is checked against
   // Ravelry's category list on the server: an unknown permalink answers 500.
@@ -45,14 +56,14 @@ export function parsePatternSearch(input: URLSearchParams | Record<string, strin
   };
   return patternSearchSchema.parse({
     query: get("query"), craft: get("craft"), availability: get("availability"),
-    weight: get("weight"), pc: get("pc"), page: get("page"),
+    weight: get("weight"), fit: get("fit"), pc: get("pc"), page: get("page"),
   });
 }
 
 /** Canonical query string (fixed key order) so equal searches share one URL and cache key. */
 export function toSearchString(s: PatternSearch): string {
   const p = new URLSearchParams();
-  for (const k of ["query", "craft", "availability", "weight", "pc"] as const) if (s[k]) p.set(k, String(s[k]));
+  for (const k of ["query", "craft", "fit", "availability", "weight", "pc"] as const) if (s[k]) p.set(k, String(s[k]));
   if (s.page && s.page > 1) p.set("page", String(s.page));
   return p.toString();
 }

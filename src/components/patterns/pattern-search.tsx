@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import {
   AVAILABILITY,
   CRAFTS,
+  FITS,
+  FIT_LABELS,
   WEIGHTS,
   WEIGHT_LABELS,
   toSearchString,
@@ -25,7 +27,7 @@ type Props = {
   categories: Category[];
 };
 
-type FilterKey = "craft" | "availability" | "weight" | "pc";
+type FilterKey = "craft" | "fit" | "availability" | "weight" | "pc";
 
 const CRAFT_LABELS: Record<(typeof CRAFTS)[number], string> = { knitting: "Knitting", crochet: "Crochet" };
 const AVAILABILITY_LABELS: Record<(typeof AVAILABILITY)[number], string> = { free: "Free", ravelry: "Ravelry download" };
@@ -75,12 +77,13 @@ export function PatternSearch({ initialSearch, initialResults, initialError, cat
     update({ ...search, query: query || undefined, page: undefined });
   }
 
-  const activeCount = (["craft", "availability", "weight", "pc"] as const).filter((k) => search[k]).length;
+  const activeCount = (["craft", "fit", "availability", "weight", "pc"] as const).filter((k) => search[k]).length;
   const page = data?.page ?? 1;
   const pageCount = data?.pageCount ?? 0;
 
   const groups: { key: FilterKey; label: string; options: { value: string; label: string }[] }[] = [
     { key: "craft", label: "Craft", options: CRAFTS.map((v) => ({ value: v, label: CRAFT_LABELS[v] })) },
+    { key: "fit", label: "Age / size", options: FITS.map((v) => ({ value: v, label: FIT_LABELS[v] })) },
     { key: "availability", label: "Availability", options: AVAILABILITY.map((v) => ({ value: v, label: AVAILABILITY_LABELS[v] })) },
     { key: "weight", label: "Yarn weight", options: WEIGHTS.map((v) => ({ value: v, label: WEIGHT_LABELS[v] })) },
     ...(categories.length

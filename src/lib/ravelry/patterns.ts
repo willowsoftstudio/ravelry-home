@@ -93,7 +93,7 @@ export async function searchPatterns(s: PatternSearch): Promise<PatternResults> 
   }
   const data = await ravelryGet<RawSearch>(
     "/patterns/search.json",
-    { query: s.query, craft: s.craft, availability: s.availability, weight: s.weight, pc, page: s.page ?? 1, page_size: PAGE_SIZE },
+    { query: s.query, craft: s.craft, availability: s.availability, weight: s.weight, fit: s.fit, pc, page: s.page ?? 1, page_size: PAGE_SIZE },
     { kind: "readonly" },
   );
   return {

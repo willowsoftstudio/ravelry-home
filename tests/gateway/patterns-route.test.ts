@@ -31,10 +31,10 @@ describe("/api/patterns", () => {
   const searchCall = () => calls.find((c) => c.pathname === "/patterns/search.json")!;
 
   it("forwards known filters and drops everything else", async () => {
-    const res = await GET(new NextRequest("http://localhost/api/patterns?query=cowl&craft=knitting&needles=4mm&debug=1&weight=chunky"));
+    const res = await GET(new NextRequest("http://localhost/api/patterns?query=cowl&craft=knitting&fit=adult&needles=4mm&debug=1&weight=chunky"));
     expect(res.status).toBe(200);
     const q = Object.fromEntries(searchCall().searchParams);
-    expect(q).toEqual({ query: "cowl", craft: "knitting", page: "1", page_size: "24" });
+    expect(q).toEqual({ query: "cowl", craft: "knitting", fit: "adult", page: "1", page_size: "24" });
   });
 
   it("forwards a category only when Ravelry lists it", async () => {
